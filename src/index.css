@@ -148,10 +148,14 @@
     box-shadow: var(--shadow-elevated);
   }
 
-  .text-gradient-metallic {
+.text-gradient-metallic {
     background: linear-gradient(135deg, hsl(0 0% 40%), hsl(0 0% 70%), hsl(0 0% 50%));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+  }
+
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 }
