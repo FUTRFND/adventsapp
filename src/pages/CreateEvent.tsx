@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, MapPin } from "lucide-react";
+import { ArrowLeft, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
+import LocationAutocomplete from "@/components/LocationAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -90,10 +91,7 @@ const CreateEvent = () => {
 
         <div>
           <Label className="text-xs text-muted-foreground mb-1.5 block">Location</Label>
-          <div className="relative">
-            <Input value={location} onChange={(e) => setLocation(e.target.value)} placeholder="Austin, TX" className="h-12 bg-secondary border-0 text-foreground pr-10" />
-            <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          </div>
+          <LocationAutocomplete value={location} onChange={setLocation} />
         </div>
 
         <div>
