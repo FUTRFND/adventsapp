@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Bell, Search, Mic, Calendar, MapPin, Users, Heart, ChevronRight } from "lucide-react";
+import { Bell, Search, Mic, Calendar, MapPin, Users, Heart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -49,19 +49,10 @@ const Dashboard = () => {
     !searchQuery || e.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const getGuestCount = (eventId: string) => {
-    return guests.filter((g) => g.event_id === eventId).length;
-  };
-
-  const eventTypeEmojis: Record<string, string> = {
-    wedding: "💍", corporate: "🏢", birthday: "🎂", social: "🎉",
-    graduation: "🎓", fundraiser: "💝", festival: "🎪", concert: "🎵",
-    "art gala": "🎨", "baby shower": "👶",
-  };
+  const getGuestCount = (eventId: string) => guests.filter((g) => g.event_id === eventId).length;
 
   return (
     <div className="pb-24 min-h-screen">
-      {/* Header */}
       <div className="px-5 pt-14 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-5">
           <div>
@@ -76,37 +67,23 @@ const Dashboard = () => {
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-sm font-bold text-primary-foreground">
-                  {displayName.charAt(0).toUpperCase()}
-                </span>
+                <span className="text-sm font-bold text-primary-foreground">{displayName.charAt(0).toUpperCase()}</span>
               )}
             </button>
           </div>
         </motion.div>
 
-        {/* Search bar */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="relative mb-5">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <Input
-            placeholder="Search for event"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-11 pr-12 h-12 bg-secondary border-0 rounded-xl text-foreground"
-          />
+          <Input placeholder="Search for event" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-11 pr-12 h-12 bg-secondary border-0 rounded-xl text-foreground" />
           <button className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
             <Mic className="w-4 h-4 text-primary-foreground" />
           </button>
         </motion.div>
 
-        {/* Complete profile banner */}
         {!profileComplete && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="bg-secondary rounded-2xl p-4 flex items-center gap-4 mb-5 cursor-pointer"
-            onClick={() => navigate("/profile")}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="bg-secondary rounded-2xl p-4 flex items-center gap-4 mb-5 cursor-pointer" onClick={() => navigate("/profile")}>
             <div className="w-14 h-14 bg-card border border-border rounded-xl flex items-center justify-center flex-shrink-0">
               <Calendar className="w-7 h-7 text-foreground" />
             </div>
@@ -117,105 +94,64 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        {/* List Your Services CTA */}
-        <motion.button
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          onClick={() => navigate("/vendors")}
-          className="w-full bg-primary text-primary-foreground rounded-2xl py-4 text-base font-bold mb-6 min-h-[44px]"
-        >
+        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+          onClick={() => navigate("/vendors")} className="w-full bg-primary text-primary-foreground rounded-2xl py-4 text-base font-bold mb-6 min-h-[44px]">
           List Your Services
         </motion.button>
       </div>
 
-      {/* See What's Happening */}
       <div className="px-5">
-        <motion.h2
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-xl font-display font-bold text-foreground mb-4"
-        >
+        <motion.h2 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-xl font-display font-bold text-foreground mb-4">
           See What's Happening
         </motion.h2>
 
-        {/* Tabs */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.25 }}
-          className="flex gap-1 overflow-x-auto pb-4 -mx-1 px-1"
-        >
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="flex gap-1 overflow-x-auto pb-4 -mx-1 px-1">
           {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                activeTab === tab
-                  ? "text-foreground font-bold"
-                  : "text-muted-foreground"
-              }`}
-            >
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${activeTab === tab ? "text-foreground font-bold" : "text-muted-foreground"}`}>
               {tab}
             </button>
           ))}
         </motion.div>
 
-        {/* Event cards - horizontal scroll */}
         {filteredEvents.length > 0 ? (
           <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 snap-x snap-mandatory">
             {filteredEvents.map((event, index) => {
-              const guestCount = getGuestCount(event.id);
+              const gc = getGuestCount(event.id);
               return (
-                <motion.button
-                  key={event.id}
-                  initial={{ opacity: 0, y: 15 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 + index * 0.08 }}
-                  onClick={() => navigate(`/events/${event.id}`)}
-                  className="flex-shrink-0 w-[280px] bg-card border border-border rounded-2xl overflow-hidden text-left snap-start"
-                >
-                  {/* Event image */}
+                <motion.button key={event.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + index * 0.08 }} onClick={() => navigate(`/events/${event.id}`)}
+                  className="flex-shrink-0 w-[280px] bg-card border border-border rounded-2xl overflow-hidden text-left snap-start">
                   <div className="relative h-44 bg-secondary">
                     {event.image_url ? (
                       <img src={event.image_url} alt={event.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-5xl">
-                        {eventTypeEmojis[event.type] || "📅"}
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Calendar className="w-12 h-12 text-muted-foreground/30" />
                       </div>
                     )}
-                    <button
-                      className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full"
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <button className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full" onClick={(e) => e.stopPropagation()}>
                       <Heart className="w-4 h-4 text-foreground" />
                     </button>
                   </div>
-
-                  {/* Event info */}
                   <div className="p-4">
                     <h3 className="text-base font-bold text-foreground mb-2 leading-tight line-clamp-2">{event.name}</h3>
                     <div className="flex items-center gap-2 mb-2">
                       {event.location && (
                         <span className="flex items-center gap-1 text-xs bg-secondary text-muted-foreground rounded-full px-2.5 py-1">
-                          <MapPin className="w-3 h-3" />
-                          {event.location}
+                          <MapPin className="w-3 h-3" /> {event.location}
                         </span>
                       )}
                     </div>
                     <div className="flex items-center gap-2">
-                      {/* Stacked avatars placeholder */}
                       <div className="flex -space-x-2">
-                        {[...Array(Math.min(3, guestCount || 1))].map((_, i) => (
+                        {[...Array(Math.min(3, gc || 1))].map((_, i) => (
                           <div key={i} className="w-6 h-6 rounded-full bg-muted border-2 border-card flex items-center justify-center">
                             <Users className="w-3 h-3 text-muted-foreground" />
                           </div>
                         ))}
                       </div>
-                      <span className="text-xs text-muted-foreground">
-                        +{guestCount || event.guest_count || 0}
-                      </span>
+                      <span className="text-xs text-muted-foreground">+{gc || event.guest_count || 0}</span>
                     </div>
                   </div>
                 </motion.button>
@@ -223,12 +159,7 @@ const Dashboard = () => {
             })}
           </div>
         ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-center py-12 text-muted-foreground"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="text-center py-12 text-muted-foreground">
             <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No events yet. Tap + to create your first one!</p>
           </motion.div>

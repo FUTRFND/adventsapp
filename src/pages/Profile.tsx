@@ -29,7 +29,7 @@ const Profile = () => {
   });
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "User";
-  const eventTypeEmojis: Record<string, string> = { wedding: "💍", corporate: "🏢", birthday: "🎂", social: "🎉", graduation: "🎓", fundraiser: "💝" };
+  const eventTypeLabels: Record<string, string> = { wedding: "Wedding", corporate: "Corporate", birthday: "Birthday", social: "Social", graduation: "Graduation", fundraiser: "Fundraiser" };
 
   const handleSignOut = async () => {
     await signOut();
