@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check } from "lucide-react";
+import { ArrowLeft, Check, Info } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +52,7 @@ const PlanningWizard = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPriorities, setSelectedPriorities] = useState<string[]>([]);
+  const [selectedVendorIds, setSelectedVendorIds] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
 
   const { data: event } = useQuery({
@@ -64,39 +65,52 @@ const PlanningWizard = () => {
     enabled: !!eventId,
   });
 
+  const { data: vendors = [] } = useQuery({
+    queryKey: ["vendors"],
+    queryFn: async () => {
+      const { data } = await supabase.from("vendors").select("*").order("rating", { ascending: false });
+      return data || [];
+    },
+  });
+
   const steps = [
     { title: "Planning Wizard", subtitle: "Let's start with the basics" },
     { title: "Tell us about the vibe...", subtitle: "Select styles that resonate" },
     { title: "Choose your priorities", subtitle: "What matters most to you?" },
+    { title: "Vendors", subtitle: "Select all desired vendors" },
     { title: "Almost there!", subtitle: "Review and generate your plan" },
   ];
 
   const progress = ((currentStep + 1) / steps.length) * 100;
+
+  const toggleVendor = (id: string) => {
+    setSelectedVendorIds((prev) =>
+      prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]
+    );
+  };
 
   const generatePlan = async () => {
     if (!eventId || !user) return;
     setGenerating(true);
 
     try {
-      // Save vibe tags and priorities to event
       await supabase.from("events").update({
         vibe_tags: selectedTags,
         priorities: selectedPriorities,
       }).eq("id", eventId);
 
-      // Generate tasks based on priorities
+      // Save selected vendors
+      if (selectedVendorIds.length > 0) {
+        const saves = selectedVendorIds.map((vendor_id) => ({ user_id: user.id, vendor_id }));
+        await supabase.from("saved_vendors").upsert(saves, { onConflict: "user_id,vendor_id" });
+      }
+
       const tasks = selectedPriorities.flatMap((priority, pi) => {
         const templates = taskTemplates[priority] || [];
         return templates.map((t, ti) => ({
-          event_id: eventId,
-          user_id: user.id,
-          title: t.title,
-          category: t.category,
-          sort_order: pi * 10 + ti,
+          event_id: eventId, user_id: user.id, title: t.title, category: t.category, sort_order: pi * 10 + ti,
         }));
       });
-
-      // Always add some base tasks
       tasks.push(
         { event_id: eventId, user_id: user.id, title: "Set final budget breakdown", category: "Planning", sort_order: 100 },
         { event_id: eventId, user_id: user.id, title: "Create day-of timeline", category: "Planning", sort_order: 101 },
@@ -109,6 +123,7 @@ const PlanningWizard = () => {
       }
 
       queryClient.invalidateQueries({ queryKey: ["events"] });
+      queryClient.invalidateQueries({ queryKey: ["saved_vendors"] });
       toast.success("Your plan has been generated!");
       navigate("/events");
     } catch (error: any) {
@@ -122,7 +137,7 @@ const PlanningWizard = () => {
     <div className="min-h-screen flex flex-col">
       <div className="px-5 pt-14 pb-4">
         <div className="flex items-center gap-4 mb-4">
-          <button onClick={() => currentStep > 0 ? setCurrentStep(currentStep - 1) : navigate(-1)} className="text-foreground">
+          <button onClick={() => currentStep > 0 ? setCurrentStep(currentStep - 1) : navigate(-1)} className="text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <span className="text-sm text-muted-foreground flex-1 text-center pr-6">Step {currentStep + 1} of {steps.length}</span>
@@ -138,6 +153,7 @@ const PlanningWizard = () => {
             <h2 className="text-2xl font-display font-bold text-foreground mb-2">{steps[currentStep].title}</h2>
             <p className="text-muted-foreground mb-8">{steps[currentStep].subtitle}</p>
 
+            {/* Step 0: Overview */}
             {currentStep === 0 && event && (
               <div className="space-y-4">
                 {[
@@ -153,11 +169,11 @@ const PlanningWizard = () => {
                 ))}
               </div>
             )}
-
             {currentStep === 0 && !event && (
               <p className="text-muted-foreground">No event selected. <button onClick={() => navigate("/create")} className="underline text-foreground">Create one first</button>.</p>
             )}
 
+            {/* Step 1: Vibes */}
             {currentStep === 1 && (
               <div className="flex flex-wrap gap-3">
                 {vibeOptions.map((tag) => (
@@ -169,6 +185,7 @@ const PlanningWizard = () => {
               </div>
             )}
 
+            {/* Step 2: Priorities */}
             {currentStep === 2 && (
               <div className="space-y-3">
                 {priorityOptions.map((p) => (
@@ -181,13 +198,50 @@ const PlanningWizard = () => {
               </div>
             )}
 
+            {/* Step 3: Vendor Selection Grid */}
             {currentStep === 3 && (
+              <div>
+                <div className="grid grid-cols-3 gap-4 mb-4">
+                  {vendors.map((vendor) => {
+                    const isSelected = selectedVendorIds.includes(vendor.id);
+                    return (
+                      <button
+                        key={vendor.id}
+                        onClick={() => toggleVendor(vendor.id)}
+                        className={`flex flex-col items-center gap-2 p-3 rounded-xl transition-all ${
+                          isSelected ? "ring-2 ring-primary bg-secondary" : "bg-transparent"
+                        }`}
+                      >
+                        <div className={`w-16 h-16 rounded-full overflow-hidden border-2 flex items-center justify-center ${
+                          isSelected ? "border-primary" : "border-border"
+                        }`}>
+                          {vendor.image_url ? (
+                            <img src={vendor.image_url} alt={vendor.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-lg font-bold text-muted-foreground">{vendor.name.charAt(0)}</span>
+                          )}
+                        </div>
+                        <span className="text-xs font-medium text-foreground text-center leading-tight line-clamp-2">{vendor.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                  <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                  <p>These vendors appear based on the information entered for your event</p>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4: Review */}
+            {currentStep === 4 && (
               <div className="bg-secondary rounded-xl p-5 space-y-3">
                 <div className="flex justify-between"><span className="text-muted-foreground">Event</span><span className="font-medium text-foreground">{event?.name || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Guests</span><span className="font-medium text-foreground">{event?.guest_count || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Budget</span><span className="font-medium text-foreground">${Number(event?.budget || 0).toLocaleString()}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Vibe</span><span className="font-medium text-foreground text-right max-w-[60%]">{selectedTags.join(", ") || "—"}</span></div>
                 <div className="flex justify-between"><span className="text-muted-foreground">Priorities</span><span className="font-medium text-foreground text-right max-w-[60%]">{selectedPriorities.join(", ") || "—"}</span></div>
+                <div className="flex justify-between"><span className="text-muted-foreground">Vendors</span><span className="font-medium text-foreground">{selectedVendorIds.length} selected</span></div>
                 <p className="text-xs text-muted-foreground mt-3">This will generate {selectedPriorities.length * 3 + 3} tasks for your event plan.</p>
               </div>
             )}
