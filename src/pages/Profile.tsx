@@ -38,9 +38,9 @@ const Profile = () => {
 
   const settingsItems = [
     { icon: Bell, label: "Notifications", action: () => navigate("/profile/notifications") },
-    { icon: CreditCard, label: "Subscription & Billing", action: () => {} },
-    { icon: Shield, label: "Privacy & Security", action: () => {} },
-    { icon: HelpCircle, label: "Help & Support", action: () => {} },
+    { icon: CreditCard, label: "Subscription & Billing", action: () => navigate("/profile/billing") },
+    { icon: Shield, label: "Privacy & Security", action: () => navigate("/profile/privacy") },
+    { icon: HelpCircle, label: "Help & Support", action: () => navigate("/profile/help") },
   ];
 
   return (

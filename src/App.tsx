@@ -17,6 +17,9 @@ import Onboarding from "./pages/Onboarding";
 import GuestManagement from "./pages/GuestManagement";
 import TaskChecklist from "./pages/TaskChecklist";
 import NotificationSettings from "./pages/NotificationSettings";
+import SubscriptionBilling from "./pages/SubscriptionBilling";
+import PrivacySecurity from "./pages/PrivacySecurity";
+import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/layout/PageTransition";
 
@@ -46,6 +49,9 @@ const AppRoutes = () => {
         <Route path="/wizard/:eventId" element={<ProtectedRoute><PlanningWizard /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
         <Route path="/profile/notifications" element={<ProtectedRoute><PageTransition><NotificationSettings /></PageTransition></ProtectedRoute>} />
+        <Route path="/profile/billing" element={<ProtectedRoute><PageTransition><SubscriptionBilling /></PageTransition></ProtectedRoute>} />
+        <Route path="/profile/privacy" element={<ProtectedRoute><PageTransition><PrivacySecurity /></PageTransition></ProtectedRoute>} />
+        <Route path="/profile/help" element={<ProtectedRoute><PageTransition><HelpSupport /></PageTransition></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute><PageTransition><VendorMarketplace /></PageTransition></ProtectedRoute>} />
         <Route path="/events" element={<ProtectedRoute><PageTransition><EventsList /></PageTransition></ProtectedRoute>} />
         <Route path="/events/:eventId" element={<ProtectedRoute><PageTransition><EventDetail /></PageTransition></ProtectedRoute>} />
