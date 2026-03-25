@@ -114,12 +114,15 @@ export type Database = {
           created_at: string
           date_end: string | null
           date_start: string | null
+          description: string | null
           guest_count: number | null
           id: string
+          image_url: string | null
           location: string | null
           name: string
           priorities: string[] | null
           progress: number | null
+          theme: string | null
           type: string
           updated_at: string
           user_id: string
@@ -130,12 +133,15 @@ export type Database = {
           created_at?: string
           date_end?: string | null
           date_start?: string | null
+          description?: string | null
           guest_count?: number | null
           id?: string
+          image_url?: string | null
           location?: string | null
           name: string
           priorities?: string[] | null
           progress?: number | null
+          theme?: string | null
           type?: string
           updated_at?: string
           user_id: string
@@ -146,12 +152,15 @@ export type Database = {
           created_at?: string
           date_end?: string | null
           date_start?: string | null
+          description?: string | null
           guest_count?: number | null
           id?: string
+          image_url?: string | null
           location?: string | null
           name?: string
           priorities?: string[] | null
           progress?: number | null
+          theme?: string | null
           type?: string
           updated_at?: string
           user_id?: string
