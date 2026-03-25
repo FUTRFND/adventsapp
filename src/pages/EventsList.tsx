@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, ChevronRight, Plus, Trash2, Users } from "lucide-react";
+import { Calendar, ChevronRight, ClipboardList, Plus, Trash2, Users } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -63,10 +63,13 @@ const EventsList = () => {
                 <p className="text-xs text-muted-foreground ml-6 mt-1">{event.guest_count} guests • {event.date_start || "No date"}</p>
               </div>
               <div className="flex items-center gap-2">
+                <button onClick={() => navigate(`/events/${event.id}/tasks`)} className="p-2 hover:bg-secondary rounded-lg">
+                  <ClipboardList className="w-4 h-4 text-muted-foreground" />
+                </button>
                 <button onClick={() => navigate(`/events/${event.id}/guests`)} className="p-2 hover:bg-secondary rounded-lg">
                   <Users className="w-4 h-4 text-muted-foreground" />
                 </button>
-                <button onClick={() => deleteEvent.mutate(event.id)} className="p-2 hover:bg-secondary rounded-lg">
+                <button onClick={(e) => { e.stopPropagation(); deleteEvent.mutate(event.id); }} className="p-2 hover:bg-secondary rounded-lg">
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </button>
                 <div className="relative w-12 h-12">
