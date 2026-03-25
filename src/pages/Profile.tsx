@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, LogOut, Bell, Shield, HelpCircle, CreditCard } from "lucide-react";
+import { ChevronRight, LogOut, Bell, Shield, HelpCircle, CreditCard, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +37,7 @@ const Profile = () => {
   };
 
   const settingsItems = [
+    { icon: Store, label: "Browse Vendors", action: () => navigate("/vendors") },
     { icon: Bell, label: "Notifications", action: () => navigate("/profile/notifications") },
     { icon: CreditCard, label: "Subscription & Billing", action: () => navigate("/profile/billing") },
     { icon: Shield, label: "Privacy & Security", action: () => navigate("/profile/privacy") },
