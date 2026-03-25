@@ -271,6 +271,48 @@ export type Database = {
           },
         ]
       }
+      user_services: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_active: boolean
+          location: string | null
+          name: string
+          price_range: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          name: string
+          price_range?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          name?: string
+          price_range?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       vendors: {
         Row: {
           amenities: string[] | null
