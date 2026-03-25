@@ -68,7 +68,7 @@ const EventDetail = () => {
       const completedCount = updatedTasks.filter((t) => t.is_completed).length;
       const progress = updatedTasks.length > 0 ? Math.round((completedCount / updatedTasks.length) * 100) : 0;
       await supabase.from("events").update({ progress }).eq("id", eventId!);
-      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch {}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event_tasks", eventId] });
@@ -109,7 +109,7 @@ const EventDetail = () => {
   const togglePaid = useMutation({
     mutationFn: async ({ id, isPaid }: { id: string; isPaid: boolean }) => {
       await supabase.from("budget_items").update({ is_paid: isPaid }).eq("id", id);
-      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch {}
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget_items", eventId] }),
   });
