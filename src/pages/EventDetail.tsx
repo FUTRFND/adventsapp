@@ -10,8 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Share } from "@capacitor/share";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
 
 const EventDetail = () => {
@@ -70,7 +68,7 @@ const EventDetail = () => {
       const completedCount = updatedTasks.filter((t) => t.is_completed).length;
       const progress = updatedTasks.length > 0 ? Math.round((completedCount / updatedTasks.length) * 100) : 0;
       await supabase.from("events").update({ progress }).eq("id", eventId!);
-      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch {}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event_tasks", eventId] });
@@ -111,19 +109,30 @@ const EventDetail = () => {
   const togglePaid = useMutation({
     mutationFn: async ({ id, isPaid }: { id: string; isPaid: boolean }) => {
       await supabase.from("budget_items").update({ is_paid: isPaid }).eq("id", id);
-      try { await Haptics.impact({ style: ImpactStyle.Light }); } catch {}
+      try { if (navigator.vibrate) navigator.vibrate(10); } catch {}
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget_items", eventId] }),
   });
 
   const handleShare = async () => {
+    const shareData = {
+      title: event?.name || "My Event",
+      text: `Check out my event: ${event?.name}`,
+      url: window.location.href,
+    };
     try {
-      await Share.share({
-        title: event?.name || "My Event",
-        text: `Check out my event: ${event?.name}`,
-        dialogTitle: "Share Event",
-      });
-    } catch {}
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+        toast.success("Event link copied to clipboard!");
+      }
+    } catch (e: any) {
+      if (e?.name !== "AbortError") {
+        await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+        toast.success("Event link copied to clipboard!");
+      }
+    }
   };
 
   const completedTasks = tasks.filter((t) => t.is_completed).length;
