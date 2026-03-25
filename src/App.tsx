@@ -21,6 +21,7 @@ import SubscriptionBilling from "./pages/SubscriptionBilling";
 import PrivacySecurity from "./pages/PrivacySecurity";
 import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
+import MapView from "./pages/MapView";
 import PageTransition from "./components/layout/PageTransition";
 
 const queryClient = new QueryClient();
@@ -52,6 +53,7 @@ const AppRoutes = () => {
         <Route path="/profile/billing" element={<ProtectedRoute><PageTransition><SubscriptionBilling /></PageTransition></ProtectedRoute>} />
         <Route path="/profile/privacy" element={<ProtectedRoute><PageTransition><PrivacySecurity /></PageTransition></ProtectedRoute>} />
         <Route path="/profile/help" element={<ProtectedRoute><PageTransition><HelpSupport /></PageTransition></ProtectedRoute>} />
+        <Route path="/map" element={<ProtectedRoute><PageTransition><MapView /></PageTransition></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute><PageTransition><VendorMarketplace /></PageTransition></ProtectedRoute>} />
         <Route path="/events" element={<ProtectedRoute><PageTransition><EventsList /></PageTransition></ProtectedRoute>} />
         <Route path="/events/:eventId" element={<ProtectedRoute><PageTransition><EventDetail /></PageTransition></ProtectedRoute>} />

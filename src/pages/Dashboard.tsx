@@ -1,17 +1,19 @@
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Calendar, ChevronRight, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Bell, Search, Mic, Calendar, MapPin, Users, Heart, ChevronRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
+
+const tabs = ["Featured", "Upcoming", "Trending", "Popular"];
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState("Featured");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -31,103 +33,207 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await queryClient.invalidateQueries({ queryKey: ["events"] });
-    await queryClient.invalidateQueries({ queryKey: ["profile"] });
-    setTimeout(() => setRefreshing(false), 600);
-  }, [queryClient]);
+  const { data: guests = [] } = useQuery({
+    queryKey: ["all_guests", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("guests").select("*").eq("user_id", user!.id);
+      return data || [];
+    },
+    enabled: !!user,
+  });
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "there";
-  const upcomingEvent = events[0];
+  const profileComplete = !!(profile?.full_name && profile?.avatar_url);
+
+  const filteredEvents = events.filter((e) =>
+    !searchQuery || e.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const getGuestCount = (eventId: string) => {
+    return guests.filter((g) => g.event_id === eventId).length;
+  };
+
+  const eventTypeEmojis: Record<string, string> = {
+    wedding: "💍", corporate: "🏢", birthday: "🎂", social: "🎉",
+    graduation: "🎓", fundraiser: "💝", festival: "🎪", concert: "🎵",
+    "art gala": "🎨", "baby shower": "👶",
+  };
 
   return (
-    <div className="pb-24 px-5 pt-14">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-display font-bold text-foreground">Hi, {displayName}!</h1>
-          <p className="text-sm text-muted-foreground">Welcome back, ready to plan?</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <button onClick={handleRefresh} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-secondary min-w-[44px] min-h-[44px]">
-            <RefreshCw className={`w-4 h-4 text-muted-foreground ${refreshing ? "animate-spin" : ""}`} />
-          </button>
-          <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full bg-secondary overflow-hidden min-w-[44px] min-h-[44px]">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-            ) : (
-              <span className="w-full h-full flex items-center justify-center text-sm font-bold text-foreground">
-                {displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </button>
-        </div>
-      </motion.div>
+    <div className="pb-24 min-h-screen">
+      {/* Header */}
+      <div className="px-5 pt-14 pb-4">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-5">
+          <div>
+            <h1 className="text-2xl font-display font-bold text-foreground">Welcome Advents</h1>
+            <p className="text-sm text-muted-foreground">Reach a wider audience and promote your services</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => navigate("/profile/notifications")} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-secondary min-w-[44px] min-h-[44px]">
+              <Bell className="w-5 h-5 text-foreground" />
+            </button>
+            <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full bg-primary overflow-hidden min-w-[44px] min-h-[44px] flex items-center justify-center">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-sm font-bold text-primary-foreground">
+                  {displayName.charAt(0).toUpperCase()}
+                </span>
+              )}
+            </button>
+          </div>
+        </motion.div>
 
-      {upcomingEvent && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-secondary rounded-2xl p-5 mb-6 cursor-pointer min-h-[44px]" onClick={() => navigate(`/events/${upcomingEvent.id}`)}>
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Upcoming event</span>
-          <div className="flex items-center gap-3 mt-2">
-            <Calendar className="w-5 h-5 text-foreground" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-foreground">{upcomingEvent.name}</h3>
-              <p className="text-sm text-muted-foreground">{upcomingEvent.date_start || "No date set"}</p>
+        {/* Search bar */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="relative mb-5">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <Input
+            placeholder="Search for event"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-11 pr-12 h-12 bg-secondary border-0 rounded-xl text-foreground"
+          />
+          <button className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
+            <Mic className="w-4 h-4 text-primary-foreground" />
+          </button>
+        </motion.div>
+
+        {/* Complete profile banner */}
+        {!profileComplete && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-secondary rounded-2xl p-4 flex items-center gap-4 mb-5 cursor-pointer"
+            onClick={() => navigate("/profile")}
+          >
+            <div className="w-14 h-14 bg-card border border-border rounded-xl flex items-center justify-center flex-shrink-0">
+              <Calendar className="w-7 h-7 text-foreground" />
             </div>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </div>
+            <div className="flex-1">
+              <h3 className="text-sm font-bold text-foreground">Complete your profile</h3>
+              <p className="text-xs text-muted-foreground">List your service to reach a wider audience and promote your services</p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* List Your Services CTA */}
+        <motion.button
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          onClick={() => navigate("/vendors")}
+          className="w-full bg-primary text-primary-foreground rounded-2xl py-4 text-base font-bold mb-6 min-h-[44px]"
+        >
+          List Your Services
+        </motion.button>
+      </div>
+
+      {/* See What's Happening */}
+      <div className="px-5">
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-xl font-display font-bold text-foreground mb-4"
+        >
+          See What's Happening
+        </motion.h2>
+
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.25 }}
+          className="flex gap-1 overflow-x-auto pb-4 -mx-1 px-1"
+        >
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                activeTab === tab
+                  ? "text-foreground font-bold"
+                  : "text-muted-foreground"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </motion.div>
-      )}
 
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
-        <Button onClick={() => navigate("/create")} className="w-full py-6 text-base font-semibold mb-3 min-h-[44px]">
-          <Wand2 className="w-5 h-5 mr-2" />
-          Create New Event
-        </Button>
-      </motion.div>
+        {/* Event cards - horizontal scroll */}
+        {filteredEvents.length > 0 ? (
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-1 px-1 snap-x snap-mandatory">
+            {filteredEvents.map((event, index) => {
+              const guestCount = getGuestCount(event.id);
+              return (
+                <motion.button
+                  key={event.id}
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 + index * 0.08 }}
+                  onClick={() => navigate(`/events/${event.id}`)}
+                  className="flex-shrink-0 w-[280px] bg-card border border-border rounded-2xl overflow-hidden text-left snap-start"
+                >
+                  {/* Event image */}
+                  <div className="relative h-44 bg-secondary">
+                    {event.image_url ? (
+                      <img src={event.image_url} alt={event.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-5xl">
+                        {eventTypeEmojis[event.type] || "📅"}
+                      </div>
+                    )}
+                    <button
+                      className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Heart className="w-4 h-4 text-foreground" />
+                    </button>
+                  </div>
 
-      {events.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-foreground">Your events</h2>
-            <button onClick={() => navigate("/events")} className="text-xs text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">View all</button>
-          </div>
-          <div className="space-y-3">
-            {events.slice(0, 3).map((event) => (
-              <div key={event.id} className="bg-card border border-border rounded-xl p-4 cursor-pointer min-h-[44px]"
-                onClick={() => navigate(`/events/${event.id}`)}>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-semibold text-foreground">{event.name}</span>
+                  {/* Event info */}
+                  <div className="p-4">
+                    <h3 className="text-base font-bold text-foreground mb-2 leading-tight line-clamp-2">{event.name}</h3>
+                    <div className="flex items-center gap-2 mb-2">
+                      {event.location && (
+                        <span className="flex items-center gap-1 text-xs bg-secondary text-muted-foreground rounded-full px-2.5 py-1">
+                          <MapPin className="w-3 h-3" />
+                          {event.location}
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground ml-6">{event.type} • {event.guest_count} guests</p>
+                    <div className="flex items-center gap-2">
+                      {/* Stacked avatars placeholder */}
+                      <div className="flex -space-x-2">
+                        {[...Array(Math.min(3, guestCount || 1))].map((_, i) => (
+                          <div key={i} className="w-6 h-6 rounded-full bg-muted border-2 border-card flex items-center justify-center">
+                            <Users className="w-3 h-3 text-muted-foreground" />
+                          </div>
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">
+                        +{guestCount || event.guest_count || 0}
+                      </span>
+                    </div>
                   </div>
-                  <div className="relative w-12 h-12">
-                    <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                      <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
-                      <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--foreground))" strokeWidth="3"
-                        strokeDasharray={`${(event.progress || 0) * 1.256} 125.6`} strokeLinecap="round" />
-                    </svg>
-                    <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-foreground">
-                      {event.progress || 0}%
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ))}
+                </motion.button>
+              );
+            })}
           </div>
-        </motion.div>
-      )}
-
-      {events.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="text-center py-12 text-muted-foreground">
-          <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">No events yet. Create your first one!</p>
-        </motion.div>
-      )}
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-center py-12 text-muted-foreground"
+          >
+            <Calendar className="w-12 h-12 mx-auto mb-3 opacity-30" />
+            <p className="text-sm">No events yet. Tap + to create your first one!</p>
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };

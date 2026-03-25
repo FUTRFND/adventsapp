@@ -1,11 +1,11 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Home, Search, PlusCircle, Compass, User } from "lucide-react";
+import { Compass, CalendarDays, MapPin, User, Plus } from "lucide-react";
 
 const tabs = [
   { icon: Compass, label: "Explore", path: "/" },
-  { icon: Search, label: "Vendors", path: "/vendors" },
-  { icon: PlusCircle, label: "", path: "/create", isCenter: true },
-  { icon: Home, label: "Events", path: "/events" },
+  { icon: CalendarDays, label: "Events", path: "/events" },
+  { icon: Plus, label: "", path: "/create", isCenter: true },
+  { icon: MapPin, label: "Map", path: "/map" },
   { icon: User, label: "Profile", path: "/profile" },
 ];
 
@@ -14,18 +14,24 @@ const BottomNav = () => {
   const navigate = useNavigate();
 
   const hiddenPaths = ["/wizard", "/auth", "/onboarding"];
-  if (hiddenPaths.some(p => location.pathname === p || location.pathname.startsWith(p + "/")) ||
-      location.pathname.includes("/guests") || location.pathname.includes("/tasks") ||
-      location.pathname.includes("/notifications")) return null;
-
-  // Hide on event detail pages
-  const eventDetailMatch = location.pathname.match(/^\/events\/[^/]+$/);
+  if (
+    hiddenPaths.some(p => location.pathname === p || location.pathname.startsWith(p + "/")) ||
+    location.pathname.includes("/guests") ||
+    location.pathname.includes("/tasks") ||
+    location.pathname.includes("/notifications") ||
+    location.pathname.includes("/billing") ||
+    location.pathname.includes("/privacy") ||
+    location.pathname.includes("/help") ||
+    location.pathname.match(/^\/events\/[^/]+$/)
+  ) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-bottom">
       <div className="flex items-end justify-around px-2 pt-2 pb-2 max-w-lg mx-auto">
         {tabs.map((tab) => {
-          const isActive = location.pathname === tab.path;
+          const isActive = tab.path === "/" 
+            ? location.pathname === "/" 
+            : location.pathname.startsWith(tab.path);
 
           if (tab.isCenter) {
             return (
