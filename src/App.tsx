@@ -17,6 +17,9 @@ import Onboarding from "./pages/Onboarding";
 import GuestManagement from "./pages/GuestManagement";
 import TaskChecklist from "./pages/TaskChecklist";
 import NotificationSettings from "./pages/NotificationSettings";
+import SubscriptionBilling from "./pages/SubscriptionBilling";
+import PrivacySecurity from "./pages/PrivacySecurity";
+import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
 import PageTransition from "./components/layout/PageTransition";
 
