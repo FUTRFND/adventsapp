@@ -13,6 +13,7 @@ import VendorMarketplace from "./pages/VendorMarketplace";
 import EventsList from "./pages/EventsList";
 import Auth from "./pages/Auth";
 import GuestManagement from "./pages/GuestManagement";
+import TaskChecklist from "./pages/TaskChecklist";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const AppRoutes = () => {
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute><VendorMarketplace /></ProtectedRoute>} />
         <Route path="/events" element={<ProtectedRoute><EventsList /></ProtectedRoute>} />
+        <Route path="/events/:eventId/tasks" element={<ProtectedRoute><TaskChecklist /></ProtectedRoute>} />
         <Route path="/events/:eventId/guests" element={<ProtectedRoute><GuestManagement /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
