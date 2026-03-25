@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Users, Share2, Heart, DollarSign, ClipboardList, ChevronDown } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Share2, Heart, DollarSign, ClipboardList, Pencil, X, ImagePlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -13,18 +15,20 @@ import { toast } from "sonner";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { format } from "date-fns";
 
-const eventTypeEmojis: Record<string, string> = {
-  wedding: "💍", corporate: "🏢", birthday: "🎂", social: "🎉",
-  graduation: "🎓", fundraiser: "💝", festival: "🎪", concert: "🎵",
-  "art gala": "🎨", "baby shower": "👶",
-};
-
 const EventDetail = () => {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showFullDesc, setShowFullDesc] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editDate, setEditDate] = useState("");
+  const [editLocation, setEditLocation] = useState("");
+  const [editType, setEditType] = useState("");
+  const [editBudget, setEditBudget] = useState("");
+  const [editGuestCount, setEditGuestCount] = useState("");
+  const [editDescription, setEditDescription] = useState("");
   const [budgetName, setBudgetName] = useState("");
   const [budgetCategory, setBudgetCategory] = useState("");
   const [budgetEstimated, setBudgetEstimated] = useState("");
@@ -66,6 +70,54 @@ const EventDetail = () => {
     },
     enabled: !!eventId,
   });
+
+  const startEditing = () => {
+    if (!event) return;
+    setEditName(event.name);
+    setEditDate(event.date_start || "");
+    setEditLocation(event.location || "");
+    setEditType(event.type);
+    setEditBudget(String(event.budget || ""));
+    setEditGuestCount(String(event.guest_count || ""));
+    setEditDescription((event as any).description || "");
+    setIsEditing(true);
+  };
+
+  const saveEdit = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from("events").update({
+        name: editName.trim(),
+        date_start: editDate || null,
+        location: editLocation || null,
+        type: editType,
+        budget: parseFloat(editBudget) || 0,
+        guest_count: parseInt(editGuestCount) || 0,
+        description: editDescription.trim() || null,
+      } as any).eq("id", eventId!);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+      queryClient.invalidateQueries({ queryKey: ["events"] });
+      setIsEditing(false);
+      toast.success("Event updated");
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    const ext = file.name.split(".").pop();
+    const path = `${user.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("event-images").upload(path, file);
+    if (error) { toast.error("Upload failed"); return; }
+    const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(path);
+    await supabase.from("events").update({ image_url: urlData.publicUrl } as any).eq("id", eventId!);
+    queryClient.invalidateQueries({ queryKey: ["event", eventId] });
+    toast.success("Image updated");
+  };
 
   const toggleTask = useMutation({
     mutationFn: async ({ taskId, completed }: { taskId: string; completed: boolean }) => {
@@ -138,9 +190,68 @@ const EventDetail = () => {
     return acc;
   }, {});
   const chartData = Object.entries(budgetByCategory).map(([name, values]) => ({ name, ...values }));
-
   const descriptionText = (event as any)?.description || "";
   const perPerson = event?.budget && event?.guest_count ? Math.round(Number(event.budget) / event.guest_count) : null;
+
+  // Edit mode
+  if (isEditing) {
+    return (
+      <div className="pb-24 min-h-screen">
+        <div className="px-5 pt-14 pb-4">
+          <div className="flex items-center gap-3 mb-6">
+            <button onClick={() => setIsEditing(false)} className="p-2 -ml-2 hover:bg-secondary rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center">
+              <X className="w-5 h-5 text-foreground" />
+            </button>
+            <h1 className="text-xl font-display font-bold text-foreground flex-1">Edit Event</h1>
+            <Button size="sm" onClick={() => saveEdit.mutate()} disabled={saveEdit.isPending}>
+              {saveEdit.isPending ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </div>
+        <div className="px-5 space-y-4">
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Event Name</Label>
+            <Input value={editName} onChange={(e) => setEditName(e.target.value)} className="h-12 bg-secondary border-0" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Event Type</Label>
+            <Input value={editType} onChange={(e) => setEditType(e.target.value)} className="h-12 bg-secondary border-0" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Date</Label>
+            <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="h-12 bg-secondary border-0" />
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Location</Label>
+            <Input value={editLocation} onChange={(e) => setEditLocation(e.target.value)} className="h-12 bg-secondary border-0" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Guest Count</Label>
+              <Input type="number" value={editGuestCount} onChange={(e) => setEditGuestCount(e.target.value)} className="h-12 bg-secondary border-0" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground mb-1 block">Budget</Label>
+              <Input type="number" value={editBudget} onChange={(e) => setEditBudget(e.target.value)} className="h-12 bg-secondary border-0" />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Description</Label>
+            <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="bg-secondary border-0 min-h-[100px]" />
+          </div>
+          {/* Image upload in edit */}
+          <div>
+            <Label className="text-xs text-muted-foreground mb-1 block">Event Image</Label>
+            <label className="flex items-center gap-3 p-4 bg-secondary rounded-xl cursor-pointer hover:bg-muted transition-colors">
+              <ImagePlus className="w-5 h-5 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Upload new image</span>
+              <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="pb-24 min-h-screen">
@@ -150,23 +261,20 @@ const EventDetail = () => {
           {(event as any)?.image_url ? (
             <img src={(event as any).image_url} alt={event?.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-6xl">
-              {eventTypeEmojis[event?.type || ""] || "📅"}
+            <div className="w-full h-full flex items-center justify-center">
+              <Calendar className="w-16 h-16 text-muted-foreground/20" />
             </div>
           )}
         </div>
-        {/* Header overlay */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-5 pt-14">
           <button onClick={() => navigate(-1)} className="p-2 bg-background/80 backdrop-blur-sm rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
           <h1 className="text-sm font-display font-bold text-foreground bg-background/80 backdrop-blur-sm rounded-full px-4 py-2">See What's Happening</h1>
           <button onClick={handleShare} className="p-2 bg-background/80 backdrop-blur-sm rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center">
-            <Heart className="w-5 h-5 text-foreground" />
+            <Share2 className="w-5 h-5 text-foreground" />
           </button>
         </div>
-
-        {/* Floating guest count */}
         <div className="absolute -bottom-5 left-5 right-5">
           <div className="bg-background rounded-full shadow-lg px-4 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -179,33 +287,32 @@ const EventDetail = () => {
               </div>
               <span className="text-sm font-semibold text-foreground">+{guests.length} Going</span>
             </div>
-            <Button size="sm" className="rounded-full px-5" onClick={() => navigate(`/events/${eventId}/guests`)}>
-              Invite
-            </Button>
+            <Button size="sm" className="rounded-full px-5" onClick={() => navigate(`/events/${eventId}/guests`)}>Invite</Button>
           </div>
         </div>
       </div>
 
       {/* Event info */}
       <div className="px-5 pt-10 pb-4">
-        <h1 className="text-2xl font-display font-bold text-foreground mb-4">{event?.name || "Event"}</h1>
+        <div className="flex items-start justify-between mb-4">
+          <h1 className="text-2xl font-display font-bold text-foreground flex-1">{event?.name || "Event"}</h1>
+          <button onClick={startEditing} className="p-2 hover:bg-secondary rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center">
+            <Pencil className="w-5 h-5 text-muted-foreground" />
+          </button>
+        </div>
 
-        {/* Date */}
         {event?.date_start && (
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
               <Calendar className="w-5 h-5 text-foreground" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">
-                {format(new Date(event.date_start + "T00:00:00"), "EEE, dd MMMM yyyy")}
-              </p>
-              <p className="text-xs text-muted-foreground">9:00 PM – 12:00 AM</p>
+              <p className="text-sm font-semibold text-foreground">{format(new Date(event.date_start + "T00:00:00"), "EEE, dd MMMM yyyy")}</p>
+              <p className="text-xs text-muted-foreground">Event day</p>
             </div>
           </div>
         )}
 
-        {/* Location */}
         {event?.location && (
           <div className="flex items-center gap-3 mb-3">
             <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
@@ -218,7 +325,6 @@ const EventDetail = () => {
           </div>
         )}
 
-        {/* Price per person */}
         {perPerson && (
           <div className="flex items-center gap-3 mb-4">
             <div className="w-10 h-10 bg-secondary rounded-xl flex items-center justify-center">
@@ -231,7 +337,6 @@ const EventDetail = () => {
           </div>
         )}
 
-        {/* About event */}
         {descriptionText && (
           <div className="mb-4">
             <h2 className="text-lg font-display font-bold text-foreground mb-2">About event</h2>
@@ -250,15 +355,9 @@ const EventDetail = () => {
       {/* Tabs */}
       <Tabs defaultValue="tasks" className="px-5">
         <TabsList className="w-full bg-secondary mb-4">
-          <TabsTrigger value="tasks" className="flex-1 gap-1.5 min-h-[44px]">
-            <ClipboardList className="w-4 h-4" /> Tasks
-          </TabsTrigger>
-          <TabsTrigger value="guests" className="flex-1 gap-1.5 min-h-[44px]">
-            <Users className="w-4 h-4" /> Guests
-          </TabsTrigger>
-          <TabsTrigger value="budget" className="flex-1 gap-1.5 min-h-[44px]">
-            <DollarSign className="w-4 h-4" /> Budget
-          </TabsTrigger>
+          <TabsTrigger value="tasks" className="flex-1 gap-1.5 min-h-[44px]"><ClipboardList className="w-4 h-4" /> Tasks</TabsTrigger>
+          <TabsTrigger value="guests" className="flex-1 gap-1.5 min-h-[44px]"><Users className="w-4 h-4" /> Guests</TabsTrigger>
+          <TabsTrigger value="budget" className="flex-1 gap-1.5 min-h-[44px]"><DollarSign className="w-4 h-4" /> Budget</TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-5">
@@ -286,7 +385,7 @@ const EventDetail = () => {
 
         <TabsContent value="guests">
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">{guests.length} guests • {confirmedGuests} confirmed</p>
+            <p className="text-sm text-muted-foreground">{guests.length} guests · {confirmedGuests} confirmed</p>
             <Button size="sm" onClick={() => navigate(`/events/${eventId}/guests`)}>Manage</Button>
           </div>
           {guests.length === 0 && (

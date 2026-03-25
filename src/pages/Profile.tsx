@@ -29,7 +29,7 @@ const Profile = () => {
   });
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "User";
-  const eventTypeEmojis: Record<string, string> = { wedding: "💍", corporate: "🏢", birthday: "🎂", social: "🎉", graduation: "🎓", fundraiser: "💝" };
+  const eventTypeLabels: Record<string, string> = { wedding: "Wedding", corporate: "Corporate", birthday: "Birthday", social: "Social", graduation: "Graduation", fundraiser: "Fundraiser" };
 
   const handleSignOut = async () => {
     await signOut();
@@ -71,7 +71,7 @@ const Profile = () => {
             {events.map((event) => (
               <button key={event.id} onClick={() => navigate(`/events/${event.id}`)}
                 className="flex-shrink-0 bg-card border border-border rounded-xl p-4 w-36 text-left hover:shadow-soft transition-shadow min-h-[44px]">
-                <span className="text-2xl mb-2 block">{eventTypeEmojis[event.type] || "📅"}</span>
+                <span className="text-xs text-muted-foreground uppercase tracking-wide mb-1 block">{eventTypeLabels[event.type] || event.type}</span>
                 <span className="text-sm font-medium text-foreground block leading-tight">{event.name}</span>
               </button>
             ))}
