@@ -28,7 +28,8 @@ const Onboarding = () => {
 
   const finish = () => {
     localStorage.setItem("advents_onboarded", "true");
-    navigate("/auth");
+    navigate("/auth", { replace: true });
+    window.location.reload();
   };
 
   return (
