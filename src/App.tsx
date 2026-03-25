@@ -10,6 +10,7 @@ import CreateEvent from "./pages/CreateEvent";
 import PlanningWizard from "./pages/PlanningWizard";
 import Profile from "./pages/Profile";
 import VendorMarketplace from "./pages/VendorMarketplace";
+import ListServices from "./pages/ListServices";
 import EventsList from "./pages/EventsList";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";

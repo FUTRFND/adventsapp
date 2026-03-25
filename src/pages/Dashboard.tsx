@@ -94,10 +94,16 @@ const Dashboard = () => {
           </motion.div>
         )}
 
-        <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-          onClick={() => navigate("/vendors")} className="w-full bg-primary text-primary-foreground rounded-2xl py-4 text-base font-bold mb-6 min-h-[44px]">
-          List Your Services
-        </motion.button>
+        <div className="flex gap-3">
+          <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
+            onClick={() => navigate("/list-services")} className="flex-1 bg-primary text-primary-foreground rounded-2xl py-4 text-base font-bold mb-6 min-h-[44px]">
+            List Your Services
+          </motion.button>
+          <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
+            onClick={() => navigate("/vendors")} className="flex-1 bg-secondary text-foreground rounded-2xl py-4 text-base font-bold mb-6 min-h-[44px]">
+            Browse Vendors
+          </motion.button>
+        </div>
       </div>
 
       <div className="px-5">
