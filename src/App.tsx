@@ -24,6 +24,7 @@ import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
 import MapView from "./pages/MapView";
 import PageTransition from "./components/layout/PageTransition";
+import MobileOnlyGate from "./components/layout/MobileOnlyGate";
 
 const queryClient = new QueryClient();
 
@@ -75,7 +76,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
+          <MobileOnlyGate>
+            <AppRoutes />
+          </MobileOnlyGate>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
