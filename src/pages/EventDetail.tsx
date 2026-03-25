@@ -10,8 +10,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Share } from "@capacitor/share";
-import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Cell } from "recharts";
 
 const EventDetail = () => {
@@ -117,13 +115,24 @@ const EventDetail = () => {
   });
 
   const handleShare = async () => {
+    const shareData = {
+      title: event?.name || "My Event",
+      text: `Check out my event: ${event?.name}`,
+      url: window.location.href,
+    };
     try {
-      await Share.share({
-        title: event?.name || "My Event",
-        text: `Check out my event: ${event?.name}`,
-        dialogTitle: "Share Event",
-      });
-    } catch {}
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+        toast.success("Event link copied to clipboard!");
+      }
+    } catch (e: any) {
+      if (e?.name !== "AbortError") {
+        await navigator.clipboard.writeText(`${shareData.text}\n${shareData.url}`);
+        toast.success("Event link copied to clipboard!");
+      }
+    }
   };
 
   const completedTasks = tasks.filter((t) => t.is_completed).length;
