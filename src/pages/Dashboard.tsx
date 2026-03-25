@@ -1,14 +1,17 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Wand2, Calendar, ChevronRight } from "lucide-react";
+import { Wand2, Calendar, ChevronRight, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [refreshing, setRefreshing] = useState(false);
 
   const { data: profile } = useQuery({
     queryKey: ["profile", user?.id],
@@ -28,6 +31,13 @@ const Dashboard = () => {
     enabled: !!user,
   });
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await queryClient.invalidateQueries({ queryKey: ["events"] });
+    await queryClient.invalidateQueries({ queryKey: ["profile"] });
+    setTimeout(() => setRefreshing(false), 600);
+  }, [queryClient]);
+
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "there";
   const upcomingEvent = events[0];
 
@@ -38,20 +48,25 @@ const Dashboard = () => {
           <h1 className="text-2xl font-display font-bold text-foreground">Hi, {displayName}!</h1>
           <p className="text-sm text-muted-foreground">Welcome back, ready to plan?</p>
         </div>
-        <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full bg-secondary overflow-hidden">
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <span className="w-full h-full flex items-center justify-center text-sm font-bold text-foreground">
-              {displayName.charAt(0).toUpperCase()}
-            </span>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={handleRefresh} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-secondary min-w-[44px] min-h-[44px]">
+            <RefreshCw className={`w-4 h-4 text-muted-foreground ${refreshing ? "animate-spin" : ""}`} />
+          </button>
+          <button onClick={() => navigate("/profile")} className="w-10 h-10 rounded-full bg-secondary overflow-hidden min-w-[44px] min-h-[44px]">
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              <span className="w-full h-full flex items-center justify-center text-sm font-bold text-foreground">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </button>
+        </div>
       </motion.div>
 
       {upcomingEvent && (
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="bg-secondary rounded-2xl p-5 mb-6 cursor-pointer" onClick={() => navigate("/events")}>
+          className="bg-secondary rounded-2xl p-5 mb-6 cursor-pointer min-h-[44px]" onClick={() => navigate(`/events/${upcomingEvent.id}`)}>
           <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Upcoming event</span>
           <div className="flex items-center gap-3 mt-2">
             <Calendar className="w-5 h-5 text-foreground" />
@@ -65,7 +80,7 @@ const Dashboard = () => {
       )}
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
-        <Button onClick={() => navigate("/create")} className="w-full py-6 text-base font-semibold mb-3">
+        <Button onClick={() => navigate("/create")} className="w-full py-6 text-base font-semibold mb-3 min-h-[44px]">
           <Wand2 className="w-5 h-5 mr-2" />
           Create New Event
         </Button>
@@ -75,11 +90,12 @@ const Dashboard = () => {
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-foreground">Your events</h2>
-            <button onClick={() => navigate("/events")} className="text-xs text-muted-foreground">View all</button>
+            <button onClick={() => navigate("/events")} className="text-xs text-muted-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">View all</button>
           </div>
           <div className="space-y-3">
             {events.slice(0, 3).map((event) => (
-              <div key={event.id} className="bg-card border border-border rounded-xl p-4">
+              <div key={event.id} className="bg-card border border-border rounded-xl p-4 cursor-pointer min-h-[44px]"
+                onClick={() => navigate(`/events/${event.id}`)}>
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">

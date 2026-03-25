@@ -11,10 +11,14 @@ import PlanningWizard from "./pages/PlanningWizard";
 import Profile from "./pages/Profile";
 import VendorMarketplace from "./pages/VendorMarketplace";
 import EventsList from "./pages/EventsList";
+import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
+import Onboarding from "./pages/Onboarding";
 import GuestManagement from "./pages/GuestManagement";
 import TaskChecklist from "./pages/TaskChecklist";
+import NotificationSettings from "./pages/NotificationSettings";
 import NotFound from "./pages/NotFound";
+import PageTransition from "./components/layout/PageTransition";
 
 const queryClient = new QueryClient();
 
@@ -27,22 +31,26 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AppRoutes = () => {
   const { user, loading } = useAuth();
+  const hasOnboarded = localStorage.getItem("advents_onboarded") === "true";
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
     <div className="max-w-lg mx-auto min-h-screen bg-background relative">
       <Routes>
-        <Route path="/auth" element={user ? <Navigate to="/" replace /> : <Auth />} />
-        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/create" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />
+        <Route path="/onboarding" element={hasOnboarded ? <Navigate to="/auth" replace /> : <Onboarding />} />
+        <Route path="/auth" element={user ? <Navigate to="/" replace /> : (hasOnboarded ? <Auth /> : <Navigate to="/onboarding" replace />)} />
+        <Route path="/" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/create" element={<ProtectedRoute><PageTransition><CreateEvent /></PageTransition></ProtectedRoute>} />
         <Route path="/wizard" element={<ProtectedRoute><PlanningWizard /></ProtectedRoute>} />
         <Route path="/wizard/:eventId" element={<ProtectedRoute><PlanningWizard /></ProtectedRoute>} />
-        <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-        <Route path="/vendors" element={<ProtectedRoute><VendorMarketplace /></ProtectedRoute>} />
-        <Route path="/events" element={<ProtectedRoute><EventsList /></ProtectedRoute>} />
-        <Route path="/events/:eventId/tasks" element={<ProtectedRoute><TaskChecklist /></ProtectedRoute>} />
-        <Route path="/events/:eventId/guests" element={<ProtectedRoute><GuestManagement /></ProtectedRoute>} />
+        <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
+        <Route path="/profile/notifications" element={<ProtectedRoute><PageTransition><NotificationSettings /></PageTransition></ProtectedRoute>} />
+        <Route path="/vendors" element={<ProtectedRoute><PageTransition><VendorMarketplace /></PageTransition></ProtectedRoute>} />
+        <Route path="/events" element={<ProtectedRoute><PageTransition><EventsList /></PageTransition></ProtectedRoute>} />
+        <Route path="/events/:eventId" element={<ProtectedRoute><PageTransition><EventDetail /></PageTransition></ProtectedRoute>} />
+        <Route path="/events/:eventId/tasks" element={<ProtectedRoute><PageTransition><TaskChecklist /></PageTransition></ProtectedRoute>} />
+        <Route path="/events/:eventId/guests" element={<ProtectedRoute><PageTransition><GuestManagement /></PageTransition></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <BottomNav />}

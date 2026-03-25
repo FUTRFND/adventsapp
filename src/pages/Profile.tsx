@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, LogOut, Bell, Shield, HelpCircle, CreditCard, Calendar } from "lucide-react";
+import { ChevronRight, LogOut, Bell, Shield, HelpCircle, CreditCard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Switch } from "@/components/ui/switch";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -37,6 +36,13 @@ const Profile = () => {
     navigate("/auth");
   };
 
+  const settingsItems = [
+    { icon: Bell, label: "Notifications", action: () => navigate("/profile/notifications") },
+    { icon: CreditCard, label: "Subscription & Billing", action: () => {} },
+    { icon: Shield, label: "Privacy & Security", action: () => {} },
+    { icon: HelpCircle, label: "Help & Support", action: () => {} },
+  ];
+
   return (
     <div className="pb-24 min-h-screen">
       <div className="px-5 pt-14 pb-6 text-center">
@@ -55,7 +61,7 @@ const Profile = () => {
       </div>
 
       <div className="px-5 mb-6">
-        <Button className="w-full py-6 text-base font-semibold" onClick={() => navigate("/create")}>Create New Event</Button>
+        <Button className="w-full py-6 text-base font-semibold min-h-[44px]" onClick={() => navigate("/create")}>Create New Event</Button>
       </div>
 
       {events.length > 0 && (
@@ -63,8 +69,8 @@ const Profile = () => {
           <h3 className="text-sm font-semibold text-foreground mb-3">My Events</h3>
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
             {events.map((event) => (
-              <button key={event.id} onClick={() => navigate("/events")}
-                className="flex-shrink-0 bg-card border border-border rounded-xl p-4 w-36 text-left hover:shadow-soft transition-shadow">
+              <button key={event.id} onClick={() => navigate(`/events/${event.id}`)}
+                className="flex-shrink-0 bg-card border border-border rounded-xl p-4 w-36 text-left hover:shadow-soft transition-shadow min-h-[44px]">
                 <span className="text-2xl mb-2 block">{eventTypeEmojis[event.type] || "📅"}</span>
                 <span className="text-sm font-medium text-foreground block leading-tight">{event.name}</span>
               </button>
@@ -76,14 +82,9 @@ const Profile = () => {
       <div className="px-5">
         <h3 className="text-sm font-semibold text-foreground mb-3">Settings</h3>
         <div className="bg-card border border-border rounded-xl overflow-hidden">
-          {[
-            { icon: Bell, label: "Notifications" },
-            { icon: CreditCard, label: "Subscription & Billing" },
-            { icon: Shield, label: "Privacy & Security" },
-            { icon: HelpCircle, label: "Help & Support" },
-          ].map((item, index) => (
-            <button key={item.label}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/50 transition-colors ${index < 3 ? "border-b border-border" : ""}`}>
+          {settingsItems.map((item, index) => (
+            <button key={item.label} onClick={item.action}
+              className={`w-full flex items-center gap-3 px-4 py-3.5 text-left hover:bg-secondary/50 transition-colors min-h-[44px] ${index < settingsItems.length - 1 ? "border-b border-border" : ""}`}>
               <item.icon className="w-5 h-5 text-muted-foreground" />
               <span className="flex-1 text-sm font-medium text-foreground">{item.label}</span>
               <ChevronRight className="w-4 h-4 text-muted-foreground" />
@@ -91,7 +92,7 @@ const Profile = () => {
           ))}
         </div>
 
-        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3.5 mt-4 text-left text-destructive">
+        <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3.5 mt-4 text-left text-destructive min-h-[44px]">
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">Sign Out</span>
         </button>

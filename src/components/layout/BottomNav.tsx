@@ -13,8 +13,13 @@ const BottomNav = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Hide on wizard, auth, and guest management
-  if (location.pathname === "/wizard" || location.pathname.startsWith("/wizard/") || location.pathname === "/auth" || location.pathname.includes("/guests")) return null;
+  const hiddenPaths = ["/wizard", "/auth", "/onboarding"];
+  if (hiddenPaths.some(p => location.pathname === p || location.pathname.startsWith(p + "/")) ||
+      location.pathname.includes("/guests") || location.pathname.includes("/tasks") ||
+      location.pathname.includes("/notifications")) return null;
+
+  // Hide on event detail pages
+  const eventDetailMatch = location.pathname.match(/^\/events\/[^/]+$/);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-bottom">
@@ -39,7 +44,7 @@ const BottomNav = () => {
             <button
               key={tab.path}
               onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors ${
+              className={`flex flex-col items-center gap-0.5 px-3 py-1 transition-colors min-w-[44px] min-h-[44px] justify-center ${
                 isActive ? "text-foreground" : "text-muted-foreground"
               }`}
             >
