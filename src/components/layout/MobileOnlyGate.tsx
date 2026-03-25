@@ -1,6 +1,13 @@
 import { Smartphone } from "lucide-react";
 
 const MobileOnlyGate = ({ children }: { children: React.ReactNode }) => {
+  // Only enforce mobile gate on the published domain, not in the editor/preview
+  const isPublishedSite = window.location.hostname === "adventsapp.lovable.app";
+
+  if (!isPublishedSite) {
+    return <>{children}</>;
+  }
+
   return (
     <>
       {/* Desktop blocker */}
@@ -15,7 +22,7 @@ const MobileOnlyGate = ({ children }: { children: React.ReactNode }) => {
           </p>
           <div className="bg-secondary rounded-xl p-4 text-sm text-muted-foreground">
             <p className="font-medium text-foreground mb-1">How to view:</p>
-            <p>Scan the QR code or open this URL on your mobile device's browser.</p>
+            <p>Open this URL on your mobile device's browser to preview the app.</p>
           </div>
         </div>
       </div>
