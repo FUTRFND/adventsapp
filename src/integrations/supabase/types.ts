@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      budget_items: {
+        Row: {
+          actual_cost: number | null
+          category: string | null
+          created_at: string
+          estimated_cost: number | null
+          event_id: string
+          id: string
+          is_paid: boolean | null
+          name: string
+          user_id: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          category?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          event_id: string
+          id?: string
+          is_paid?: boolean | null
+          name: string
+          user_id: string
+        }
+        Update: {
+          actual_cost?: number | null
+          category?: string | null
+          created_at?: string
+          estimated_cost?: number | null
+          event_id?: string
+          id?: string
+          is_paid?: boolean | null
+          name?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_items_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_tasks: {
         Row: {
           category: string | null
