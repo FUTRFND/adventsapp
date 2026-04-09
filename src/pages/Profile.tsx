@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, LogOut, Bell, Shield, HelpCircle, CreditCard, Store } from "lucide-react";
+import { ChevronRight, LogOut, Bell, Shield, HelpCircle, CreditCard, Store, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,17 +19,8 @@ const Profile = () => {
     enabled: !!user,
   });
 
-  const { data: events = [] } = useQuery({
-    queryKey: ["events", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase.from("events").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
-      return data || [];
-    },
-    enabled: !!user,
-  });
-
-  const displayName = profile?.full_name || user?.email?.split("@")[0] || "User";
-  const eventTypeLabels: Record<string, string> = { wedding: "Wedding", corporate: "Corporate", birthday: "Birthday", social: "Social", graduation: "Graduation", fundraiser: "Fundraiser" };
+  const accountType = (profile as any)?.account_type || "planner";
+  const displayName = (profile as any)?.business_name || profile?.full_name || user?.email?.split("@")[0] || "User";
 
   const handleSignOut = async () => {
     await signOut();
@@ -37,7 +28,11 @@ const Profile = () => {
   };
 
   const settingsItems = [
-    { icon: Store, label: "Browse Vendors", action: () => navigate("/vendors") },
+    ...(accountType === "planner" ? [
+      { icon: Store, label: "Browse Vendors", action: () => navigate("/vendors") },
+    ] : [
+      { icon: Store, label: "Manage Services", action: () => navigate("/list-services") },
+    ]),
     { icon: Bell, label: "Notifications", action: () => navigate("/profile/notifications") },
     { icon: CreditCard, label: "Subscription & Billing", action: () => navigate("/profile/billing") },
     { icon: Shield, label: "Privacy & Security", action: () => navigate("/profile/privacy") },
@@ -59,26 +54,16 @@ const Profile = () => {
         </motion.div>
         <h2 className="text-xl font-display font-bold text-foreground">{displayName}</h2>
         <p className="text-sm text-muted-foreground">{user?.email}</p>
+        <span className="inline-block mt-2 px-3 py-1 bg-secondary rounded-full text-xs font-medium text-muted-foreground capitalize">
+          {accountType === "business" ? "Business Account" : "Event Planner"}
+        </span>
       </div>
 
       <div className="px-5 mb-6">
-        <Button className="w-full py-6 text-base font-semibold min-h-[44px]" onClick={() => navigate("/create")}>Create New Event</Button>
+        <Button className="w-full py-6 text-base font-semibold min-h-[44px]" onClick={() => navigate(accountType === "business" ? "/list-services" : "/create")}>
+          {accountType === "business" ? "Manage Services" : "Create New Event"}
+        </Button>
       </div>
-
-      {events.length > 0 && (
-        <div className="px-5 mb-6">
-          <h3 className="text-sm font-semibold text-foreground mb-3">My Events</h3>
-          <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1">
-            {events.map((event) => (
-              <button key={event.id} onClick={() => navigate(`/events/${event.id}`)}
-                className="flex-shrink-0 bg-card border border-border rounded-xl p-4 w-36 text-left hover:shadow-soft transition-shadow min-h-[44px]">
-                <span className="text-xs text-muted-foreground uppercase tracking-wide mb-1 block">{eventTypeLabels[event.type] || event.type}</span>
-                <span className="text-sm font-medium text-foreground block leading-tight">{event.name}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
       <div className="px-5">
         <h3 className="text-sm font-semibold text-foreground mb-3">Settings</h3>
@@ -92,6 +77,13 @@ const Profile = () => {
             </button>
           ))}
         </div>
+
+        {/* Switch Account Type */}
+        <button onClick={() => navigate("/role-selection")}
+          className="w-full flex items-center gap-3 px-4 py-3.5 mt-4 text-left text-foreground min-h-[44px] bg-secondary rounded-xl">
+          {accountType === "business" ? <Calendar className="w-5 h-5" /> : <Store className="w-5 h-5" />}
+          <span className="text-sm font-medium">Switch to {accountType === "business" ? "Event Planner" : "Business"} Account</span>
+        </button>
 
         <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3.5 mt-4 text-left text-destructive min-h-[44px]">
           <LogOut className="w-5 h-5" />

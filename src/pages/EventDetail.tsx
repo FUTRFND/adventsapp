@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, MapPin, Users, Share2, Heart, DollarSign, ClipboardList, Pencil, X, ImagePlus } from "lucide-react";
+import { ArrowLeft, Calendar, MapPin, Users, Share2, DollarSign, ClipboardList, Pencil, X, ImagePlus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,15 +48,6 @@ const EventDetail = () => {
     queryKey: ["event_tasks", eventId],
     queryFn: async () => {
       const { data } = await supabase.from("event_tasks").select("*").eq("event_id", eventId!).order("sort_order");
-      return data || [];
-    },
-    enabled: !!eventId,
-  });
-
-  const { data: guests = [] } = useQuery({
-    queryKey: ["guests", eventId],
-    queryFn: async () => {
-      const { data } = await supabase.from("guests").select("*").eq("event_id", eventId!);
       return data || [];
     },
     enabled: !!eventId,
@@ -126,12 +117,10 @@ const EventDetail = () => {
       const completedCount = updatedTasks.filter((t) => t.is_completed).length;
       const progress = updatedTasks.length > 0 ? Math.round((completedCount / updatedTasks.length) * 100) : 0;
       await supabase.from("events").update({ progress }).eq("id", eventId!);
-      try { if (navigator.vibrate) navigator.vibrate(10); } catch {}
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["event_tasks", eventId] });
       queryClient.invalidateQueries({ queryKey: ["event", eventId] });
-      queryClient.invalidateQueries({ queryKey: ["events"] });
     },
   });
 
@@ -158,7 +147,6 @@ const EventDetail = () => {
   const togglePaid = useMutation({
     mutationFn: async ({ id, isPaid }: { id: string; isPaid: boolean }) => {
       await supabase.from("budget_items").update({ is_paid: isPaid }).eq("id", id);
-      try { if (navigator.vibrate) navigator.vibrate(10); } catch {}
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["budget_items", eventId] }),
   });
@@ -173,7 +161,6 @@ const EventDetail = () => {
     }
   };
 
-  const confirmedGuests = guests.filter((g) => g.rsvp_status === "confirmed").length;
   const totalEstimated = budgetItems.reduce((s, i) => s + Number(i.estimated_cost || 0), 0);
   const totalActual = budgetItems.reduce((s, i) => s + Number(i.actual_cost || 0), 0);
   const tasksByCategory = tasks.reduce<Record<string, typeof tasks>>((acc, task) => {
@@ -193,7 +180,6 @@ const EventDetail = () => {
   const descriptionText = (event as any)?.description || "";
   const perPerson = event?.budget && event?.guest_count ? Math.round(Number(event.budget) / event.guest_count) : null;
 
-  // Edit mode
   if (isEditing) {
     return (
       <div className="pb-24 min-h-screen">
@@ -239,7 +225,6 @@ const EventDetail = () => {
             <Label className="text-xs text-muted-foreground mb-1 block">Description</Label>
             <Textarea value={editDescription} onChange={(e) => setEditDescription(e.target.value)} className="bg-secondary border-0 min-h-[100px]" />
           </div>
-          {/* Image upload in edit */}
           <div>
             <Label className="text-xs text-muted-foreground mb-1 block">Event Image</Label>
             <label className="flex items-center gap-3 p-4 bg-secondary rounded-xl cursor-pointer hover:bg-muted transition-colors">
@@ -270,24 +255,20 @@ const EventDetail = () => {
           <button onClick={() => navigate(-1)} className="p-2 bg-background/80 backdrop-blur-sm rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center">
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </button>
-          <h1 className="text-sm font-display font-bold text-foreground bg-background/80 backdrop-blur-sm rounded-full px-4 py-2">See What's Happening</h1>
+          <h1 className="text-sm font-display font-bold text-foreground bg-background/80 backdrop-blur-sm rounded-full px-4 py-2">Event Details</h1>
           <button onClick={handleShare} className="p-2 bg-background/80 backdrop-blur-sm rounded-full min-w-[44px] min-h-[44px] flex items-center justify-center">
             <Share2 className="w-5 h-5 text-foreground" />
           </button>
         </div>
+
+        {/* Guest coordination banner */}
         <div className="absolute -bottom-5 left-5 right-5">
           <div className="bg-background rounded-full shadow-lg px-4 py-2.5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {[...Array(Math.min(3, guests.length || 1))].map((_, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full bg-muted border-2 border-background flex items-center justify-center">
-                    <Users className="w-3.5 h-3.5 text-muted-foreground" />
-                  </div>
-                ))}
-              </div>
-              <span className="text-sm font-semibold text-foreground">+{guests.length} Going</span>
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground">{event?.guest_count || 0} Guests</span>
             </div>
-            <Button size="sm" className="rounded-full px-5" onClick={() => navigate(`/events/${eventId}/guests`)}>Invite</Button>
+            <span className="text-xs text-muted-foreground px-3 py-1 bg-secondary rounded-full">Partiful coming soon</span>
           </div>
         </div>
       </div>
@@ -320,7 +301,7 @@ const EventDetail = () => {
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">{event.location}</p>
-              <p className="text-xs text-muted-foreground">{event.location}</p>
+              <p className="text-xs text-muted-foreground">Location</p>
             </div>
           </div>
         )}
@@ -344,7 +325,7 @@ const EventDetail = () => {
               {showFullDesc ? descriptionText : descriptionText.slice(0, 200)}
               {descriptionText.length > 200 && (
                 <button onClick={() => setShowFullDesc(!showFullDesc)} className="text-foreground font-medium ml-1">
-                  {showFullDesc ? "Show Less" : "…Read More"}
+                  {showFullDesc ? "Show Less" : "...Read More"}
                 </button>
               )}
             </p>
@@ -352,20 +333,76 @@ const EventDetail = () => {
         )}
       </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="tasks" className="px-5">
+      {/* Tabs - Tasks and Budget only (no guests/RSVP) */}
+      <Tabs defaultValue="budget" className="px-5">
         <TabsList className="w-full bg-secondary mb-4">
+          <TabsTrigger value="budget" className="flex-1 gap-1.5 min-h-[44px]"><DollarSign className="w-4 h-4" /> Budget</TabsTrigger>
           <TabsTrigger value="tasks" className="flex-1 gap-1.5 min-h-[44px]"><ClipboardList className="w-4 h-4" /> Tasks</TabsTrigger>
           <TabsTrigger value="guests" className="flex-1 gap-1.5 min-h-[44px]"><Users className="w-4 h-4" /> Guests</TabsTrigger>
-          <TabsTrigger value="budget" className="flex-1 gap-1.5 min-h-[44px]"><DollarSign className="w-4 h-4" /> Budget</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="budget" className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-secondary rounded-xl p-4 text-center">
+              <p className="text-lg font-bold text-foreground">${totalEstimated.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground">Estimated</p>
+            </div>
+            <div className="bg-secondary rounded-xl p-4 text-center">
+              <p className="text-lg font-bold text-foreground">${totalActual.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground">Actual</p>
+            </div>
+          </div>
+
+          {chartData.length > 0 && (
+            <div className="bg-card border border-border rounded-xl p-4">
+              <ResponsiveContainer width="100%" height={150}>
+                <BarChart data={chartData}>
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} />
+                  <Bar dataKey="estimated" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="actual" fill="hsl(var(--foreground))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          <Button variant="outline" className="w-full" onClick={() => setShowBudgetForm(!showBudgetForm)}>
+            {showBudgetForm ? "Cancel" : "Add Budget Item"}
+          </Button>
+
+          {showBudgetForm && (
+            <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+              <Input value={budgetName} onChange={(e) => setBudgetName(e.target.value)} placeholder="Item name" className="bg-secondary border-0" />
+              <Input value={budgetCategory} onChange={(e) => setBudgetCategory(e.target.value)} placeholder="Category" className="bg-secondary border-0" />
+              <div className="grid grid-cols-2 gap-2">
+                <Input value={budgetEstimated} onChange={(e) => setBudgetEstimated(e.target.value)} placeholder="Estimated" type="number" className="bg-secondary border-0" />
+                <Input value={budgetActual} onChange={(e) => setBudgetActual(e.target.value)} placeholder="Actual" type="number" className="bg-secondary border-0" />
+              </div>
+              <Button onClick={() => addBudgetItem.mutate()} className="w-full" disabled={addBudgetItem.isPending}>Add</Button>
+            </div>
+          )}
+
+          {budgetItems.map((item) => (
+            <div key={item.id} className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl">
+              <Checkbox checked={item.is_paid || false} onCheckedChange={(checked) => togglePaid.mutate({ id: item.id, isPaid: !!checked })} />
+              <div className="flex-1">
+                <p className="text-sm font-medium text-foreground">{item.name}</p>
+                <p className="text-xs text-muted-foreground">{item.category}</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-semibold text-foreground">${Number(item.actual_cost || 0).toLocaleString()}</p>
+                <p className="text-[10px] text-muted-foreground">of ${Number(item.estimated_cost || 0).toLocaleString()}</p>
+              </div>
+            </div>
+          ))}
+        </TabsContent>
 
         <TabsContent value="tasks" className="space-y-5">
           {tasks.length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
               <ClipboardList className="w-12 h-12 mx-auto mb-3 opacity-30" />
               <p className="text-sm mb-3">No tasks yet</p>
-              <Button variant="outline" onClick={() => navigate(`/wizard/${eventId}`)}>Run Planning Wizard</Button>
+              <p className="text-xs">Tasks can be added when working with an event planner</p>
             </div>
           )}
           {Object.entries(tasksByCategory).map(([cat, catTasks]) => (
@@ -373,100 +410,29 @@ const EventDetail = () => {
               <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">{cat}</h3>
               <div className="space-y-1">
                 {catTasks.map((task) => (
-                  <label key={task.id} className="flex items-start gap-3 p-3 bg-card border border-border rounded-xl cursor-pointer hover:bg-secondary/50 transition-colors min-h-[44px]">
-                    <Checkbox checked={task.is_completed ?? false} onCheckedChange={(checked) => toggleTask.mutate({ taskId: task.id, completed: !!checked })} className="mt-0.5" />
-                    <span className={`text-sm font-medium flex-1 ${task.is_completed ? "line-through text-muted-foreground" : "text-foreground"}`}>{task.title}</span>
-                  </label>
+                  <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/50 transition-colors">
+                    <Checkbox checked={task.is_completed || false} onCheckedChange={(checked) => toggleTask.mutate({ taskId: task.id, completed: !!checked })} />
+                    <span className={`text-sm flex-1 ${task.is_completed ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                      {task.title}
+                    </span>
+                  </div>
                 ))}
               </div>
             </div>
           ))}
         </TabsContent>
 
-        <TabsContent value="guests">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-foreground">{guests.length} guests · {confirmedGuests} confirmed</p>
-            <Button size="sm" onClick={() => navigate(`/events/${eventId}/guests`)}>Manage</Button>
-          </div>
-          {guests.length === 0 && (
-            <div className="text-center py-12 text-muted-foreground">
-              <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm mb-3">No guests yet</p>
-              <Button variant="outline" onClick={() => navigate(`/events/${eventId}/guests`)}>Add Guests</Button>
-            </div>
-          )}
-          <div className="space-y-2">
-            {guests.slice(0, 10).map((guest) => (
-              <div key={guest.id} className="flex items-center justify-between p-3 bg-card border border-border rounded-xl">
-                <span className="text-sm font-medium text-foreground">{guest.name}</span>
-                <span className={`text-xs px-2 py-1 rounded-full ${guest.rsvp_status === "confirmed" ? "bg-secondary text-foreground" : guest.rsvp_status === "declined" ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"}`}>
-                  {guest.rsvp_status || "pending"}
-                </span>
-              </div>
-            ))}
-            {guests.length > 10 && <Button variant="ghost" className="w-full" onClick={() => navigate(`/events/${eventId}/guests`)}>View all {guests.length} guests</Button>}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="budget" className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="bg-secondary rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Estimated</p>
-              <p className="text-lg font-bold text-foreground">${totalEstimated.toLocaleString()}</p>
-            </div>
-            <div className="bg-secondary rounded-xl p-4">
-              <p className="text-xs text-muted-foreground mb-1">Actual</p>
-              <p className={`text-lg font-bold ${totalActual > totalEstimated ? "text-destructive" : "text-foreground"}`}>${totalActual.toLocaleString()}</p>
-            </div>
-          </div>
-          {chartData.length > 0 && (
-            <div className="bg-card border border-border rounded-xl p-4">
-              <h3 className="text-xs font-semibold text-muted-foreground uppercase mb-3">By Category</h3>
-              <ResponsiveContainer width="100%" height={160}>
-                <BarChart data={chartData} barGap={4}>
-                  <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                  <YAxis hide />
-                  <Bar dataKey="estimated" radius={[4, 4, 0, 0]} fill="hsl(var(--border))" />
-                  <Bar dataKey="actual" radius={[4, 4, 0, 0]} fill="hsl(var(--foreground))" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          )}
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-foreground">Items</h3>
-            <Button size="sm" variant="outline" onClick={() => setShowBudgetForm(!showBudgetForm)}>{showBudgetForm ? "Cancel" : "+ Add"}</Button>
-          </div>
-          {showBudgetForm && (
-            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} className="bg-card border border-border rounded-xl p-4 space-y-3">
-              <Input value={budgetName} onChange={(e) => setBudgetName(e.target.value)} placeholder="Item name" className="h-11 bg-secondary border-0" />
-              <Input value={budgetCategory} onChange={(e) => setBudgetCategory(e.target.value)} placeholder="Category" className="h-11 bg-secondary border-0" />
-              <div className="grid grid-cols-2 gap-3">
-                <Input type="number" value={budgetEstimated} onChange={(e) => setBudgetEstimated(e.target.value)} placeholder="Estimated $" className="h-11 bg-secondary border-0" />
-                <Input type="number" value={budgetActual} onChange={(e) => setBudgetActual(e.target.value)} placeholder="Actual $" className="h-11 bg-secondary border-0" />
-              </div>
-              <Button onClick={() => addBudgetItem.mutate()} className="w-full" disabled={addBudgetItem.isPending}>Add Item</Button>
-            </motion.div>
-          )}
-          {budgetItems.length === 0 && !showBudgetForm && (
-            <div className="text-center py-12 text-muted-foreground">
-              <DollarSign className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">No budget items yet</p>
-            </div>
-          )}
-          <div className="space-y-2">
-            {budgetItems.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 p-3 bg-card border border-border rounded-xl min-h-[44px]">
-                <Checkbox checked={item.is_paid ?? false} onCheckedChange={(checked) => togglePaid.mutate({ id: item.id, isPaid: !!checked })} />
-                <div className="flex-1 min-w-0">
-                  <p className={`text-sm font-medium ${item.is_paid ? "line-through text-muted-foreground" : "text-foreground"}`}>{item.name}</p>
-                  <p className="text-[10px] text-muted-foreground">{item.category}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-xs text-muted-foreground">${Number(item.estimated_cost || 0).toLocaleString()}</p>
-                  <p className="text-sm font-semibold text-foreground">${Number(item.actual_cost || 0).toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
+        <TabsContent value="guests" className="space-y-4">
+          {/* Partiful Placeholder */}
+          <div className="text-center py-12">
+            <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground/30" />
+            <h3 className="text-lg font-display font-bold text-foreground mb-2">Guest Coordination</h3>
+            <p className="text-sm text-muted-foreground mb-4 max-w-[260px] mx-auto">
+              Invite and manage your guest list with our upcoming Partiful integration
+            </p>
+            <span className="inline-block px-5 py-2.5 bg-secondary border border-border rounded-full text-sm font-medium text-muted-foreground">
+              Partiful integration coming soon
+            </span>
           </div>
         </TabsContent>
       </Tabs>

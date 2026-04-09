@@ -4,8 +4,11 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import BottomNav from "@/components/layout/BottomNav";
 import Dashboard from "./pages/Dashboard";
+import BusinessDashboard from "./pages/BusinessDashboard";
 import CreateEvent from "./pages/CreateEvent";
 import PlanningWizard from "./pages/PlanningWizard";
 import Profile from "./pages/Profile";
@@ -15,7 +18,9 @@ import EventsList from "./pages/EventsList";
 import EventDetail from "./pages/EventDetail";
 import Auth from "./pages/Auth";
 import Onboarding from "./pages/Onboarding";
-import GuestManagement from "./pages/GuestManagement";
+import RoleSelection from "./pages/RoleSelection";
+import PaymentReview from "./pages/PaymentReview";
+import EventSimulation from "./pages/EventSimulation";
 import TaskChecklist from "./pages/TaskChecklist";
 import NotificationSettings from "./pages/NotificationSettings";
 import SubscriptionBilling from "./pages/SubscriptionBilling";
@@ -35,6 +40,45 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+const RoleGate = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ["profile-role", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("account_type").eq("user_id", user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+    staleTime: 60000,
+  });
+
+  if (isLoading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
+
+  const accountType = (profile as any)?.account_type;
+  if (!accountType || accountType === "planner") {
+    // Default planner — already has a type set or uses default
+    return <>{children}</>;
+  }
+  return <>{children}</>;
+};
+
+const HomeDashboard = () => {
+  const { user } = useAuth();
+  const { data: profile } = useQuery({
+    queryKey: ["profile-role", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase.from("profiles").select("account_type").eq("user_id", user!.id).single();
+      return data;
+    },
+    enabled: !!user,
+    staleTime: 60000,
+  });
+
+  const accountType = (profile as any)?.account_type;
+  if (accountType === "business") return <BusinessDashboard />;
+  return <Dashboard />;
+};
+
 const AppRoutes = () => {
   const { user, loading } = useAuth();
   const hasOnboarded = localStorage.getItem("advents_onboarded") === "true";
@@ -46,8 +90,11 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/onboarding" element={hasOnboarded ? <Navigate to="/auth" replace /> : <Onboarding />} />
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : (hasOnboarded ? <Auth /> : <Navigate to="/onboarding" replace />)} />
-        <Route path="/" element={<ProtectedRoute><PageTransition><Dashboard /></PageTransition></ProtectedRoute>} />
-        <Route path="/create" element={<ProtectedRoute><PageTransition><CreateEvent /></PageTransition></ProtectedRoute>} />
+        <Route path="/role-selection" element={<ProtectedRoute><RoleSelection /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><PageTransition><HomeDashboard /></PageTransition></ProtectedRoute>} />
+        <Route path="/create" element={<ProtectedRoute><CreateEvent /></ProtectedRoute>} />
+        <Route path="/payment" element={<ProtectedRoute><PaymentReview /></ProtectedRoute>} />
+        <Route path="/event-simulation" element={<ProtectedRoute><EventSimulation /></ProtectedRoute>} />
         <Route path="/wizard" element={<ProtectedRoute><PlanningWizard /></ProtectedRoute>} />
         <Route path="/wizard/:eventId" element={<ProtectedRoute><PlanningWizard /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><PageTransition><Profile /></PageTransition></ProtectedRoute>} />
@@ -61,7 +108,6 @@ const AppRoutes = () => {
         <Route path="/events" element={<ProtectedRoute><PageTransition><EventsList /></PageTransition></ProtectedRoute>} />
         <Route path="/events/:eventId" element={<ProtectedRoute><PageTransition><EventDetail /></PageTransition></ProtectedRoute>} />
         <Route path="/events/:eventId/tasks" element={<ProtectedRoute><PageTransition><TaskChecklist /></PageTransition></ProtectedRoute>} />
-        <Route path="/events/:eventId/guests" element={<ProtectedRoute><PageTransition><GuestManagement /></PageTransition></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {user && <BottomNav />}

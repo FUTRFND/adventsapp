@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Calendar, ClipboardList, Plus, Trash2, Users, RefreshCw } from "lucide-react";
+import { Calendar, Plus, Trash2, RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -65,37 +65,21 @@ const EventsList = () => {
       <div className="space-y-3">
         {events.map((event, index) => (
           <motion.div key={event.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 }} className="bg-card border border-border rounded-xl p-4 cursor-pointer"
+            transition={{ delay: index * 0.08 }} className="bg-card border border-border rounded-xl overflow-hidden cursor-pointer"
             onClick={() => navigate(`/events/${event.id}`)}>
-            <div className="flex items-start justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
+            {event.image_url && (
+              <img src={event.image_url} alt={event.name} className="w-full h-32 object-cover" />
+            )}
+            <div className="p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
                   <span className="font-semibold text-foreground">{event.name}</span>
+                  <p className="text-xs text-muted-foreground mt-0.5">{event.type} • {event.guest_count} guests</p>
+                  <p className="text-xs text-muted-foreground">{event.date_start || "No date set"}</p>
                 </div>
-                <p className="text-xs text-muted-foreground ml-6">{event.type}</p>
-                <p className="text-xs text-muted-foreground ml-6 mt-1">{event.guest_count} guests • {event.date_start || "No date"}</p>
-              </div>
-              <div className="flex items-center gap-1">
-                <button onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}/tasks`); }} className="p-2 hover:bg-secondary rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center">
-                  <ClipboardList className="w-4 h-4 text-muted-foreground" />
-                </button>
-                <button onClick={(e) => { e.stopPropagation(); navigate(`/events/${event.id}/guests`); }} className="p-2 hover:bg-secondary rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center">
-                  <Users className="w-4 h-4 text-muted-foreground" />
-                </button>
                 <button onClick={(e) => { e.stopPropagation(); deleteEvent.mutate(event.id); }} className="p-2 hover:bg-secondary rounded-lg min-w-[44px] min-h-[44px] flex items-center justify-center">
                   <Trash2 className="w-4 h-4 text-destructive" />
                 </button>
-                <div className="relative w-12 h-12">
-                  <svg className="w-12 h-12 -rotate-90" viewBox="0 0 48 48">
-                    <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--border))" strokeWidth="3" />
-                    <circle cx="24" cy="24" r="20" fill="none" stroke="hsl(var(--foreground))" strokeWidth="3"
-                      strokeDasharray={`${(event.progress || 0) * 1.256} 125.6`} strokeLinecap="round" />
-                  </svg>
-                  <span className="absolute inset-0 flex items-center justify-center text-xs font-semibold text-foreground">
-                    {event.progress || 0}%
-                  </span>
-                </div>
               </div>
             </div>
           </motion.div>
