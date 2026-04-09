@@ -1,60 +1,96 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Calendar, Clock, ChevronRight, Search, Mic, MapPin, ImagePlus, X } from "lucide-react";
+import { ArrowLeft, Search, Check, Calendar, Clock, MapPin, Users, DollarSign, ChevronRight, ImagePlus, X, Star, Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import LocationAutocomplete from "@/components/LocationAutocomplete";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { eventTypes, eventTypeCategories } from "@/data/eventTypes";
+import { eventThemes } from "@/data/eventThemes";
 
-const eventTypes = [
-  { value: "festival", label: "Festival" },
-  { value: "art gala", label: "Art gala" },
-  { value: "concert", label: "Concert" },
-  { value: "baby shower", label: "Baby shower" },
-  { value: "wedding", label: "Wedding" },
-  { value: "corporate", label: "Corporate Event" },
-  { value: "birthday", label: "Birthday Party" },
-  { value: "graduation", label: "Graduation" },
-  { value: "fundraiser", label: "Fundraiser" },
-  { value: "social", label: "Social Gathering" },
+const TOTAL_STEPS = 9;
+
+const decorOptions = [
+  { id: "centerpieces", name: "Centerpieces", price: 800 },
+  { id: "lighting", name: "Ambient Lighting", price: 1200 },
+  { id: "floral-arch", name: "Floral Arch", price: 2500 },
+  { id: "table-settings", name: "Premium Table Settings", price: 600 },
+  { id: "drapery", name: "Ceiling Drapery", price: 1500 },
+  { id: "photo-backdrop", name: "Photo Backdrop", price: 900 },
+  { id: "signage", name: "Custom Signage", price: 400 },
+  { id: "balloon-install", name: "Balloon Installation", price: 700 },
 ];
-
-const themes = [
-  { value: "Black and white", label: "Black and white" },
-  { value: "Disco", label: "Disco" },
-  { value: "Barbie", label: "Barbie" },
-  { value: "Gatsby", label: "Gatsby" },
-  { value: "Tropical", label: "Tropical" },
-  { value: "Rustic", label: "Rustic" },
-  { value: "Bohemian", label: "Bohemian" },
-  { value: "Minimalist", label: "Minimalist" },
-  { value: "Classic", label: "Classic" },
-];
-
-type SubPage = null | "type" | "theme" | "location";
 
 const CreateEvent = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [name, setName] = useState("");
-  const [type, setType] = useState("wedding");
-  const [theme, setTheme] = useState("Classic");
-  const [dateStart, setDateStart] = useState("");
-  const [location, setLocation] = useState("");
-  const [guestCount, setGuestCount] = useState("150");
-  const [budget, setBudget] = useState([50000]);
-  const [description, setDescription] = useState("");
+  const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [subPage, setSubPage] = useState<SubPage>(null);
-  const [searchFilter, setSearchFilter] = useState("");
+
+  // Form state
+  const [name, setName] = useState("");
+  const [type, setType] = useState("");
+  const [theme, setTheme] = useState("");
+  const [dateStart, setDateStart] = useState("");
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [location, setLocation] = useState("");
+  const [guestCount, setGuestCount] = useState("100");
+  const [budget, setBudget] = useState([30000]);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Selection state
+  const [selectedVenue, setSelectedVenue] = useState<any>(null);
+  const [selectedVendors, setSelectedVendors] = useState<any[]>([]);
+  const [selectedDecor, setSelectedDecor] = useState<any[]>([]);
+
+  // Search
+  const [searchFilter, setSearchFilter] = useState("");
+  const [typeCategory, setTypeCategory] = useState("All");
+
+  const { data: venues = [] } = useQuery({
+    queryKey: ["vendors-venues"],
+    queryFn: async () => {
+      const { data } = await supabase.from("vendors").select("*").eq("category", "Venues").order("rating", { ascending: false });
+      return (data || []).map(v => ({ ...v, price: parseInt(v.price_range?.replace(/[^0-9]/g, '') || '5000') }));
+    },
+  });
+
+  const { data: vendors = [] } = useQuery({
+    queryKey: ["vendors-services"],
+    queryFn: async () => {
+      const { data } = await supabase.from("vendors").select("*").neq("category", "Venues").order("rating", { ascending: false });
+      return (data || []).map(v => ({ ...v, price: parseInt(v.price_range?.replace(/[^0-9]/g, '') || '2000') }));
+    },
+  });
+
+  const progress = ((step + 1) / TOTAL_STEPS) * 100;
+
+  const filteredTypes = useMemo(() => {
+    let list = eventTypes;
+    if (typeCategory !== "All") list = list.filter(t => t.category === typeCategory);
+    if (searchFilter) list = list.filter(t => t.label.toLowerCase().includes(searchFilter.toLowerCase()));
+    return list;
+  }, [typeCategory, searchFilter]);
+
+  const filteredThemes = useMemo(() => {
+    if (!searchFilter) return eventThemes;
+    return eventThemes.filter(t => t.label.toLowerCase().includes(searchFilter.toLowerCase()));
+  }, [searchFilter]);
+
+  const runningTotal = useMemo(() => {
+    const v = selectedVenue?.price || 0;
+    const vd = selectedVendors.reduce((s, x) => s + (x.price || 0), 0);
+    const dc = selectedDecor.reduce((s, x) => s + (x.price || 0), 0);
+    return v + vd + dc;
+  }, [selectedVenue, selectedVendors, selectedDecor]);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,13 +105,26 @@ const CreateEvent = () => {
     const ext = imageFile.name.split(".").pop();
     const path = `${user.id}/${Date.now()}.${ext}`;
     const { error } = await supabase.storage.from("event-images").upload(path, imageFile);
-    if (error) { toast.error("Image upload failed"); return null; }
+    if (error) return null;
     const { data: urlData } = supabase.storage.from("event-images").getPublicUrl(path);
     return urlData.publicUrl;
   };
 
-  const handleCreate = async () => {
-    if (!name.trim()) { toast.error("Event name is required"); return; }
+  const handleNext = () => {
+    if (step === 0 && !type) { toast.error("Please select an event type"); return; }
+    if (step === 1 && !theme) { toast.error("Please select a theme"); return; }
+    if (step === 2 && !name.trim()) { toast.error("Please enter an event name"); return; }
+    if (step === 2 && startTime && endTime && endTime <= startTime) { toast.error("End time must be after start time"); return; }
+    setSearchFilter("");
+    setStep(step + 1);
+  };
+
+  const handleBack = () => {
+    if (step > 0) { setSearchFilter(""); setStep(step - 1); }
+    else navigate(-1);
+  };
+
+  const handleFinish = async () => {
     setSaving(true);
     try {
       const imageUrl = await uploadImage();
@@ -88,12 +137,30 @@ const CreateEvent = () => {
         location: location || null,
         guest_count: parseInt(guestCount) || 0,
         budget: budget[0],
-        description: description.trim() || null,
         image_url: imageUrl,
       } as any).select().single();
       if (error) throw error;
-      toast.success("Event created!");
-      navigate(`/wizard/${data.id}`);
+
+      // Navigate to payment with all selections
+      navigate("/payment", {
+        state: {
+          eventData: {
+            id: data.id,
+            name: name.trim(),
+            type: eventTypes.find(t => t.value === type)?.label || type,
+            theme: eventThemes.find(t => t.value === theme)?.label || theme,
+            dateStart: dateStart ? new Date(dateStart + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", month: "long", day: "numeric", year: "numeric" }) : null,
+            startTime,
+            endTime,
+            location,
+            guestCount: parseInt(guestCount) || 0,
+            budget: budget[0],
+            selectedVenue,
+            selectedVendors,
+            selectedDecor,
+          },
+        },
+      });
     } catch (error: any) {
       toast.error(error.message);
     } finally {
@@ -101,261 +168,332 @@ const CreateEvent = () => {
     }
   };
 
-  const selectedType = eventTypes.find((t) => t.value === type);
-  const selectedTheme = themes.find((t) => t.value === theme);
+  const toggleVendor = (vendor: any) => {
+    setSelectedVendors(prev =>
+      prev.find(v => v.id === vendor.id) ? prev.filter(v => v.id !== vendor.id) : [...prev, vendor]
+    );
+  };
 
-  // Sub-page: Select Event Type
-  if (subPage === "type") {
-    const filtered = eventTypes.filter((t) =>
-      !searchFilter || t.label.toLowerCase().includes(searchFilter.toLowerCase())
+  const toggleDecor = (decor: any) => {
+    setSelectedDecor(prev =>
+      prev.find(d => d.id === decor.id) ? prev.filter(d => d.id !== decor.id) : [...prev, decor]
     );
-    return (
-      <div className="min-h-screen flex flex-col">
-        <div className="px-5 pt-14 pb-4">
-          <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => { setSubPage(null); setSearchFilter(""); }} className="text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-lg font-display font-bold text-foreground flex-1 text-center pr-6">Select an Event</h1>
-          </div>
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input placeholder="Search for event type" value={searchFilter} onChange={(e) => setSearchFilter(e.target.value)} className="pl-11 pr-12 h-12 bg-secondary border-0 rounded-xl" />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-              <Mic className="w-4 h-4 text-primary-foreground" />
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 px-5">
-          <div className="space-y-1">
-            {filtered.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => { setType(t.value); setSubPage(null); setSearchFilter(""); }}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl transition-all min-h-[44px] ${
-                  type === t.value ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground hover:bg-secondary"
-                }`}
-              >
-                <span className="font-medium">{t.label}</span>
-                {type === t.value && <div className="w-5 h-5 rounded-full border-2 border-primary-foreground flex items-center justify-center"><div className="w-2.5 h-2.5 rounded-full bg-primary-foreground" /></div>}
-              </button>
-            ))}
-          </div>
-          <div className="mt-4">
-            <Textarea placeholder="Describe your event with keywords" className="bg-secondary border-0 min-h-[80px]" />
-          </div>
-        </div>
-        <div className="px-5 pb-8 pt-4">
-          <Button className="w-full py-6 text-base font-semibold" onClick={() => { setSubPage(null); setSearchFilter(""); }}>Save</Button>
-        </div>
-      </div>
-    );
-  }
+  };
 
-  // Sub-page: Select Theme
-  if (subPage === "theme") {
-    const filtered = themes.filter((t) =>
-      !searchFilter || t.label.toLowerCase().includes(searchFilter.toLowerCase())
-    );
-    return (
-      <div className="min-h-screen flex flex-col">
-        <div className="px-5 pt-14 pb-4">
-          <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => { setSubPage(null); setSearchFilter(""); }} className="text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-lg font-display font-bold text-foreground flex-1 text-center pr-6">Select a Theme</h1>
-          </div>
-          <div className="relative mb-4">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <Input placeholder="Search for event theme" value={searchFilter} onChange={(e) => setSearchFilter(e.target.value)} className="pl-11 pr-12 h-12 bg-secondary border-0 rounded-xl" />
-            <div className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 bg-primary rounded-lg flex items-center justify-center">
-              <Mic className="w-4 h-4 text-primary-foreground" />
-            </div>
-          </div>
-        </div>
-        <div className="flex-1 px-5">
-          <div className="space-y-1">
-            {filtered.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => { setTheme(t.value); setSubPage(null); setSearchFilter(""); }}
-                className={`w-full flex items-center justify-between px-5 py-4 rounded-xl transition-all min-h-[44px] ${
-                  theme === t.value ? "bg-primary text-primary-foreground" : "bg-transparent text-foreground hover:bg-secondary"
-                }`}
-              >
-                <span className="font-medium">{t.label}</span>
-                {theme === t.value && <div className="w-5 h-5 rounded-full border-2 border-primary-foreground flex items-center justify-center"><div className="w-2.5 h-2.5 rounded-full bg-primary-foreground" /></div>}
-              </button>
-            ))}
-          </div>
-          <div className="mt-4">
-            <Textarea placeholder="Add key tag words to describe the theme" className="bg-secondary border-0 min-h-[80px]" />
-          </div>
-        </div>
-        <div className="px-5 pb-8 pt-4">
-          <Button className="w-full py-6 text-base font-semibold" onClick={() => { setSubPage(null); setSearchFilter(""); }}>Save</Button>
-        </div>
-      </div>
-    );
-  }
+  const stepTitles = [
+    "What are you planning?",
+    "Choose your theme",
+    "Event details",
+    "Select a venue",
+    "Choose vendors",
+    "Decor & style",
+    "Review your event",
+  ];
 
-  // Sub-page: Location
-  if (subPage === "location") {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <div className="px-5 pt-14 pb-4">
-          <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => setSubPage(null)} className="text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-lg font-display font-bold text-foreground flex-1 text-center pr-6">Location</h1>
-          </div>
-        </div>
-        <div className="flex-1 px-5 space-y-4">
-          <LocationAutocomplete value={location} onChange={setLocation} />
-          <div className="w-full h-48 bg-secondary rounded-xl flex items-center justify-center border border-border">
-            <div className="text-center text-muted-foreground">
-              <MapPin className="w-8 h-8 mx-auto mb-2" />
-              <p className="text-sm">Map will appear here</p>
-            </div>
-          </div>
-        </div>
-        <div className="px-5 pb-8 pt-4">
-          <Button className="w-full py-6 text-base font-semibold" onClick={() => setSubPage(null)}>Save</Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Main form
   return (
     <div className="min-h-screen flex flex-col">
-      <div className="px-5 pt-14 pb-4">
-        <div className="flex items-center gap-4 mb-4">
-          <button onClick={() => navigate(-1)} className="text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
+      {/* Header */}
+      <div className="px-5 pt-14 pb-3">
+        <div className="flex items-center gap-4 mb-3">
+          <button onClick={handleBack} className="text-foreground min-w-[44px] min-h-[44px] flex items-center justify-center">
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-lg font-display font-bold text-foreground flex-1 text-center pr-6">Plan your event</h1>
+          <span className="text-sm text-muted-foreground flex-1 text-center pr-6">Step {step + 1} of {TOTAL_STEPS}</span>
         </div>
+        <div className="h-1 bg-secondary rounded-full overflow-hidden">
+          <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${progress}%` }} transition={{ duration: 0.3 }} />
+        </div>
+        {/* Running Total */}
+        {runningTotal > 0 && step >= 3 && (
+          <div className="mt-2 flex justify-end">
+            <span className="text-xs text-muted-foreground">Est. total: <span className="font-semibold text-foreground">${runningTotal.toLocaleString()}</span></span>
+          </div>
+        )}
       </div>
 
-      <div className="flex-1 px-5 space-y-5 overflow-y-auto">
-        {/* Event image upload */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block">Event Image</Label>
-          {imagePreview ? (
-            <div className="relative rounded-xl overflow-hidden h-44">
-              <img src={imagePreview} alt="Event" className="w-full h-full object-cover" />
-              <button
-                onClick={() => { setImageFile(null); setImagePreview(null); }}
-                className="absolute top-2 right-2 p-1.5 bg-background/80 backdrop-blur-sm rounded-full"
-              >
-                <X className="w-4 h-4 text-foreground" />
-              </button>
-            </div>
-          ) : (
-            <label className="flex flex-col items-center justify-center h-36 bg-secondary rounded-xl border-2 border-dashed border-border cursor-pointer hover:border-muted-foreground transition-colors">
-              <ImagePlus className="w-8 h-8 text-muted-foreground mb-2" />
-              <span className="text-sm text-muted-foreground">Tap to add event image</span>
-              <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
-            </label>
-          )}
-        </div>
+      <div className="flex-1 px-5 pb-4 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.2 }}>
+            {step < stepTitles.length && (
+              <h2 className="text-2xl font-display font-bold text-foreground mb-6">{stepTitles[step]}</h2>
+            )}
 
-        {/* Event Title */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1 block">Event Title</Label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="New year Art performance"
-            className="h-auto py-3 bg-transparent border-0 border-b border-border rounded-none text-lg font-bold text-foreground placeholder:text-muted-foreground placeholder:font-normal placeholder:text-base focus-visible:ring-0"
-          />
-        </div>
+            {/* Step 0: Event Type */}
+            {step === 0 && (
+              <div>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="Search event types..." value={searchFilter} onChange={e => setSearchFilter(e.target.value)}
+                    className="pl-10 h-11 bg-secondary border-0 rounded-xl" />
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1">
+                  {eventTypeCategories.map(cat => (
+                    <button key={cat} onClick={() => setTypeCategory(cat)}
+                      className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${typeCategory === cat ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
+                      {cat}
+                    </button>
+                  ))}
+                </div>
+                <div className="space-y-1 mt-2">
+                  {filteredTypes.map(t => (
+                    <button key={t.value} onClick={() => setType(t.value)}
+                      className={`w-full flex items-center justify-between px-4 py-3.5 rounded-xl transition-all ${type === t.value ? "bg-primary text-primary-foreground" : "hover:bg-secondary text-foreground"}`}>
+                      <span className="font-medium text-sm">{t.label}</span>
+                      {type === t.value && <Check className="w-4 h-4" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-        {/* Day picker */}
-        <button
+            {/* Step 1: Theme */}
+            {step === 1 && (
+              <div>
+                <div className="relative mb-4">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <Input placeholder="Search themes..." value={searchFilter} onChange={e => setSearchFilter(e.target.value)}
+                    className="pl-10 h-11 bg-secondary border-0 rounded-xl" />
+                </div>
+                <div className="flex flex-wrap gap-2.5">
+                  {filteredThemes.map(t => (
+                    <button key={t.value} onClick={() => setTheme(t.value)}
+                      className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all ${theme === t.value ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground border border-border"}`}>
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 2: Details */}
+            {step === 2 && (
+              <div className="space-y-5">
+                {/* Event Image */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">Event Image (optional)</Label>
+                  {imagePreview ? (
+                    <div className="relative rounded-xl overflow-hidden h-36">
+                      <img src={imagePreview} alt="Event" className="w-full h-full object-cover" />
+                      <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 p-1.5 bg-background/80 backdrop-blur-sm rounded-full">
+                        <X className="w-4 h-4 text-foreground" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-28 bg-secondary rounded-xl border-2 border-dashed border-border cursor-pointer">
+                      <ImagePlus className="w-6 h-6 text-muted-foreground mb-1" />
+                      <span className="text-xs text-muted-foreground">Add image</span>
+                      <input type="file" accept="image/*" onChange={handleImageSelect} className="hidden" />
+                    </label>
+                  )}
+                </div>
+                {/* Name */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Event Name</Label>
+                  <Input value={name} onChange={e => setName(e.target.value)} placeholder="My Amazing Event"
+                    className="h-12 bg-secondary border-0 text-foreground text-base" />
+                </div>
+                {/* Date */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Date</Label>
+                  <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    className="h-12 bg-secondary border-0 text-foreground" />
+                </div>
+                {/* Times */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1 block">Start Time</Label>
+                    <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)}
+                      className="h-12 bg-secondary border-0 text-foreground" />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground mb-1 block">End Time</Label>
+                    <Input type="time" value={endTime} onChange={e => setEndTime(e.target.value)}
+                      className="h-12 bg-secondary border-0 text-foreground" />
+                  </div>
+                </div>
+                {startTime && endTime && endTime <= startTime && (
+                  <p className="text-xs text-destructive">End time must be after start time</p>
+                )}
+                {/* Location */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Location</Label>
+                  <LocationAutocomplete value={location} onChange={setLocation} />
+                </div>
+                {/* Guest Count */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">Expected Guests</Label>
+                  <Input type="number" value={guestCount} onChange={e => setGuestCount(e.target.value)}
+                    className="h-12 bg-secondary border-0 text-foreground" />
+                </div>
+                {/* Budget */}
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-2 block">Budget</Label>
+                  <Slider value={budget} onValueChange={setBudget} max={200000} min={1000} step={1000} className="mb-2" />
+                  <div className="flex justify-between">
+                    <span className="text-sm font-semibold text-foreground">${budget[0].toLocaleString()}</span>
+                    <span className="text-xs text-muted-foreground">$200,000</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Step 3: Venue Selection */}
+            {step === 3 && (
+              <div className="space-y-3">
+                {venues.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <MapPin className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">No venues available yet</p>
+                    <p className="text-xs mt-1">You can skip this step</p>
+                  </div>
+                ) : venues.map(venue => (
+                  <button key={venue.id} onClick={() => setSelectedVenue(selectedVenue?.id === venue.id ? null : venue)}
+                    className={`w-full bg-card border rounded-xl overflow-hidden text-left transition-all ${selectedVenue?.id === venue.id ? "border-foreground ring-1 ring-foreground" : "border-border"}`}>
+                    {venue.image_url && <img src={venue.image_url} alt={venue.name} className="w-full h-32 object-cover" />}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground">{venue.name}</h3>
+                          {venue.location && <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" />{venue.location}</p>}
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-semibold text-foreground">{venue.price_range}</span>
+                          {venue.rating && (
+                            <p className="text-xs text-muted-foreground flex items-center gap-0.5 justify-end mt-0.5">
+                              <Star className="w-3 h-3 fill-foreground text-foreground" />{venue.rating}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Step 4: Vendor Selection */}
+            {step === 4 && (
+              <div className="space-y-3">
+                {vendors.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground">
+                    <Users className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">No vendors available yet</p>
+                  </div>
+                ) : vendors.map(vendor => {
+                  const isSelected = selectedVendors.some(v => v.id === vendor.id);
+                  return (
+                    <button key={vendor.id} onClick={() => toggleVendor(vendor)}
+                      className={`w-full bg-card border rounded-xl overflow-hidden text-left transition-all ${isSelected ? "border-foreground ring-1 ring-foreground" : "border-border"}`}>
+                      <div className="flex gap-3 p-4">
+                        {vendor.image_url && <img src={vendor.image_url} alt={vendor.name} className="w-16 h-16 rounded-lg object-cover flex-shrink-0" />}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-sm font-bold text-foreground">{vendor.name}</h3>
+                          <p className="text-xs text-muted-foreground">{vendor.category}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-xs text-muted-foreground">{vendor.price_range}</span>
+                            {vendor.rating && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                                <Star className="w-3 h-3 fill-foreground text-foreground" />{vendor.rating}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {isSelected && <Check className="w-5 h-5 text-foreground flex-shrink-0 mt-1" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Step 5: Decor */}
+            {step === 5 && (
+              <div className="space-y-3">
+                {decorOptions.map(decor => {
+                  const isSelected = selectedDecor.some(d => d.id === decor.id);
+                  return (
+                    <button key={decor.id} onClick={() => toggleDecor(decor)}
+                      className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
+                      <div className="text-left">
+                        <span className="font-medium text-sm">{decor.name}</span>
+                        <p className={`text-xs mt-0.5 ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>${decor.price.toLocaleString()}</p>
+                      </div>
+                      {isSelected && <Check className="w-5 h-5" />}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Step 6: Review */}
+            {step === 6 && (
+              <div className="space-y-4">
+                <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Event</span><span className="text-sm font-medium text-foreground text-right max-w-[60%]">{name || "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Type</span><span className="text-sm font-medium text-foreground">{eventTypes.find(t => t.value === type)?.label || "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Theme</span><span className="text-sm font-medium text-foreground">{eventThemes.find(t => t.value === theme)?.label || "—"}</span></div>
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Date</span><span className="text-sm font-medium text-foreground">{dateStart || "TBD"}</span></div>
+                  {startTime && <div className="flex justify-between"><span className="text-sm text-muted-foreground">Time</span><span className="text-sm font-medium text-foreground">{startTime}{endTime ? ` - ${endTime}` : ""}</span></div>}
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Location</span><span className="text-sm font-medium text-foreground text-right max-w-[60%]">{location || "TBD"}</span></div>
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Guests</span><span className="text-sm font-medium text-foreground">{guestCount}</span></div>
+                  <div className="flex justify-between"><span className="text-sm text-muted-foreground">Budget</span><span className="text-sm font-medium text-foreground">${budget[0].toLocaleString()}</span></div>
+                </div>
+
+                {selectedVenue && (
+                  <div className="bg-card border border-border rounded-2xl p-5">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Venue</h3>
+                    <p className="text-sm font-bold text-foreground">{selectedVenue.name}</p>
+                    <p className="text-xs text-muted-foreground">{selectedVenue.price_range}</p>
+                  </div>
+                )}
+
+                {selectedVendors.length > 0 && (
+                  <div className="bg-card border border-border rounded-2xl p-5">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Vendors ({selectedVendors.length})</h3>
+                    {selectedVendors.map(v => (
+                      <div key={v.id} className="flex justify-between py-1">
+                        <span className="text-sm text-foreground">{v.name}</span>
+                        <span className="text-xs text-muted-foreground">{v.price_range}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {selectedDecor.length > 0 && (
+                  <div className="bg-card border border-border rounded-2xl p-5">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Decor ({selectedDecor.length})</h3>
+                    {selectedDecor.map(d => (
+                      <div key={d.id} className="flex justify-between py-1">
+                        <span className="text-sm text-foreground">{d.name}</span>
+                        <span className="text-xs text-muted-foreground">${d.price.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="bg-secondary rounded-2xl p-4">
+                  <div className="flex justify-between text-base font-bold">
+                    <span className="text-foreground">Estimated Total</span>
+                    <span className="text-foreground">${runningTotal.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Footer */}
+      <div className="px-5 pb-8 pt-3">
+        <Button className="w-full py-6 text-base font-semibold" disabled={saving}
           onClick={() => {
-            const input = document.createElement("input");
-            input.type = "date";
-            input.onchange = (e) => setDateStart((e.target as HTMLInputElement).value);
-            input.click();
-          }}
-          className="w-full flex items-center gap-4 bg-secondary rounded-xl px-4 py-4 text-left min-h-[44px]"
-        >
-          <div className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center">
-            <Calendar className="w-5 h-5 text-foreground" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">Day</p>
-            <p className="text-xs text-muted-foreground">
-              {dateStart ? new Date(dateStart + "T00:00:00").toLocaleDateString("en-US", { weekday: "short", day: "numeric", month: "long", year: "numeric" }) : "Select a date"}
-            </p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
-
-        {/* Time picker */}
-        <button className="w-full flex items-center gap-4 bg-secondary rounded-xl px-4 py-4 text-left min-h-[44px]">
-          <div className="w-10 h-10 bg-card border border-border rounded-lg flex items-center justify-center">
-            <Clock className="w-5 h-5 text-foreground" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-foreground">Choose Time</p>
-            <p className="text-xs text-muted-foreground">Set event time</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-muted-foreground" />
-        </button>
-
-        {/* Event type selector */}
-        <div>
-          <Label className="text-sm font-semibold text-foreground mb-2 block">Event type</Label>
-          <button onClick={() => setSubPage("type")} className="w-full flex items-center gap-3 bg-secondary rounded-xl px-4 py-3.5 text-left min-h-[44px]">
-            <span className="flex-1 text-sm font-medium text-foreground">{selectedType?.label || "Select type"}</span>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Event theme selector */}
-        <div>
-          <Label className="text-sm font-semibold text-foreground mb-2 block">Event theme</Label>
-          <button onClick={() => setSubPage("theme")} className="w-full flex items-center gap-3 bg-secondary rounded-xl px-4 py-3.5 text-left min-h-[44px]">
-            <span className="flex-1 text-sm font-medium text-foreground">{selectedTheme?.label || "Select theme"}</span>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Location selector */}
-        <div>
-          <Label className="text-sm font-semibold text-foreground mb-2 block">Location</Label>
-          <button onClick={() => setSubPage("location")} className="w-full flex items-center gap-3 bg-secondary rounded-xl px-4 py-3.5 text-left min-h-[44px]">
-            <MapPin className="w-5 h-5 text-muted-foreground" />
-            <span className="flex-1 text-sm font-medium text-foreground">{location || "Select location"}</span>
-            <ChevronRight className="w-5 h-5 text-muted-foreground" />
-          </button>
-        </div>
-
-        {/* Guest count */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-1.5 block">Guest Count</Label>
-          <Input value={guestCount} onChange={(e) => setGuestCount(e.target.value)} type="number" className="h-12 bg-secondary border-0 text-foreground" />
-        </div>
-
-        {/* Budget */}
-        <div>
-          <Label className="text-xs text-muted-foreground mb-2 block">Budget</Label>
-          <Slider value={budget} onValueChange={setBudget} max={150000} min={1000} step={1000} className="mb-2" />
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground">${budget[0].toLocaleString()} USD</span>
-            <span className="text-xs text-muted-foreground">$150,000</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="px-5 pb-8 pt-4">
-        <Button className="w-full py-6 text-base font-semibold" onClick={handleCreate} disabled={saving}>
-          {saving ? "Creating..." : "Continue"}
+            if (step < 6) handleNext();
+            else handleFinish();
+          }}>
+          {step === 6 ? (saving ? "Creating..." : "Continue to Payment") : step === 3 || step === 4 || step === 5 ? (
+            `Continue${step === 3 && !selectedVenue ? " (skip venue)" : ""}`
+          ) : "Continue"}
         </Button>
       </div>
     </div>
