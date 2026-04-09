@@ -211,7 +211,11 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string
           avatar_url: string | null
+          business_category: string | null
+          business_description: string | null
+          business_name: string | null
           created_at: string
           full_name: string | null
           id: string
@@ -221,7 +225,11 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          account_type?: string
           avatar_url?: string | null
+          business_category?: string | null
+          business_description?: string | null
+          business_name?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
@@ -231,7 +239,11 @@ export type Database = {
           user_id: string
         }
         Update: {
+          account_type?: string
           avatar_url?: string | null
+          business_category?: string | null
+          business_description?: string | null
+          business_name?: string | null
           created_at?: string
           full_name?: string | null
           id?: string
