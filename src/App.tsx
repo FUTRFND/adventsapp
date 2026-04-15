@@ -115,18 +115,38 @@ const AppRoutes = () => {
   );
 };
 
+const UnavailableWall = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background px-6">
+    <div className="text-center max-w-sm">
+      <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-6">
+        <span className="text-2xl">🔒</span>
+      </div>
+      <h1 className="text-2xl font-display font-bold text-foreground mb-3">Temporarily Unavailable</h1>
+      <p className="text-muted-foreground text-sm">
+        This application is currently undergoing maintenance and is temporarily unavailable. Please check back later.
+      </p>
+    </div>
+  </div>
+);
+
+const SITE_LOCKED = true;
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <MobileOnlyGate>
-            <AppRoutes />
-          </MobileOnlyGate>
-        </AuthProvider>
-      </BrowserRouter>
+      {SITE_LOCKED ? (
+        <UnavailableWall />
+      ) : (
+        <BrowserRouter>
+          <AuthProvider>
+            <MobileOnlyGate>
+              <AppRoutes />
+            </MobileOnlyGate>
+          </AuthProvider>
+        </BrowserRouter>
+      )}
     </TooltipProvider>
   </QueryClientProvider>
 );
