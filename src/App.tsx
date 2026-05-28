@@ -129,7 +129,7 @@ const UnavailableWall = () => (
   </div>
 );
 
-const SITE_LOCKED = true;
+const SITE_LOCKED = false;
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
