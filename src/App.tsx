@@ -25,6 +25,7 @@ import TaskChecklist from "./pages/TaskChecklist";
 import NotificationSettings from "./pages/NotificationSettings";
 import SubscriptionBilling from "./pages/SubscriptionBilling";
 import PrivacySecurity from "./pages/PrivacySecurity";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
 import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
 import MapView from "./pages/MapView";
@@ -101,6 +102,7 @@ const AppRoutes = () => {
         <Route path="/profile/notifications" element={<ProtectedRoute><PageTransition><NotificationSettings /></PageTransition></ProtectedRoute>} />
         <Route path="/profile/billing" element={<ProtectedRoute><PageTransition><SubscriptionBilling /></PageTransition></ProtectedRoute>} />
         <Route path="/profile/privacy" element={<ProtectedRoute><PageTransition><PrivacySecurity /></PageTransition></ProtectedRoute>} />
+        <Route path="/privacy-policy" element={<PageTransition><PrivacyPolicy /></PageTransition>} />
         <Route path="/profile/help" element={<ProtectedRoute><PageTransition><HelpSupport /></PageTransition></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><PageTransition><MapView /></PageTransition></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute><PageTransition><VendorMarketplace /></PageTransition></ProtectedRoute>} />
