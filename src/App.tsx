@@ -89,7 +89,7 @@ const AppRoutes = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="max-w-lg mx-auto min-h-screen bg-background relative">
+    <div className="max-w-lg mx-auto min-h-screen relative">
       <Routes>
         <Route path="/onboarding" element={hasOnboarded ? <Navigate to="/auth" replace /> : <Onboarding />} />
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : (hasOnboarded ? <Auth /> : <Navigate to="/onboarding" replace />)} />
