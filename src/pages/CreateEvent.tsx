@@ -137,8 +137,8 @@ const CreateEvent = () => {
   const handleNext = () => {
     if (step === 0 && !type) { toast.error("Please select an event type"); return; }
     if (step === 1 && !theme) { toast.error("Please select a theme"); return; }
-    if (step === 2 && !name.trim()) { toast.error("Please enter an event name"); return; }
-    if (step === 2 && startTime && endTime && endTime <= startTime) { toast.error("End time must be after start time"); return; }
+    if (step === 3 && !name.trim()) { toast.error("Please enter an event name"); return; }
+    if (step === 3 && startTime && endTime && endTime <= startTime) { toast.error("End time must be after start time"); return; }
     setSearchFilter("");
     setStep(step + 1);
   };
@@ -162,6 +162,8 @@ const CreateEvent = () => {
         guest_count: parseInt(guestCount) || 0,
         budget: budget[0],
         image_url: imageUrl,
+        visibility,
+        planner_id: selectedPlanner?.id || null,
       } as any).select().single();
       if (error) throw error;
 
@@ -182,6 +184,9 @@ const CreateEvent = () => {
             selectedVenue,
             selectedVendors,
             selectedDecor,
+            visibility,
+            selectedPlanner,
+            inspirationBoardIds: selectedInspiration,
           },
         },
       });
@@ -207,10 +212,12 @@ const CreateEvent = () => {
   const stepTitles = [
     "What are you planning?",
     "Choose your theme",
+    "Find your inspiration",
     "Event details",
     "Select a venue",
     "Choose vendors",
     "Decor & style",
+    "Visibility & planner",
     "Review your event",
   ];
 
