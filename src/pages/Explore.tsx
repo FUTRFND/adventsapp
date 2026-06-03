@@ -10,12 +10,12 @@ const Explore = () => {
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["public_events"],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("events")
         .select("*")
-        .eq("visibility" as any, "public")
+        .eq("visibility", "public")
         .order("date_start", { ascending: true, nullsFirst: false });
-      return data || [];
+      return (data as any[]) || [];
     },
   });
 
