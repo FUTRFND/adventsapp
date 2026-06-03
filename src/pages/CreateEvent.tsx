@@ -235,7 +235,7 @@ const CreateEvent = () => {
           <motion.div className="h-full bg-primary rounded-full" animate={{ width: `${progress}%` }} transition={{ duration: 0.3 }} />
         </div>
         {/* Running Total */}
-        {runningTotal > 0 && step >= 3 && (
+        {runningTotal > 0 && step >= 4 && (
           <div className="mt-2 flex justify-end">
             <span className="text-xs text-muted-foreground">Est. total: <span className="font-semibold text-foreground">${runningTotal.toLocaleString()}</span></span>
           </div>
@@ -296,8 +296,43 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 2: Details */}
+            {/* Step 2: Inspiration */}
             {step === 2 && (
+              <div>
+                <p className="text-sm text-muted-foreground mb-4">Pick decor boards that match your vision. We'll use them to shape your visualization.</p>
+                {inspirationBoards.length === 0 ? (
+                  <div className="text-center py-12 text-muted-foreground text-sm">No inspiration boards yet — you can skip this step.</div>
+                ) : (
+                  <div className="grid grid-cols-2 gap-3">
+                    {inspirationBoards.map((b: any) => {
+                      const active = selectedInspiration.includes(b.id);
+                      return (
+                        <button
+                          key={b.id}
+                          onClick={() => setSelectedInspiration(prev => prev.includes(b.id) ? prev.filter(x => x !== b.id) : [...prev, b.id])}
+                          className={`relative rounded-xl overflow-hidden aspect-[3/4] text-left transition-all ${active ? "ring-2 ring-primary" : ""}`}
+                        >
+                          {b.cover_image_url && <img src={b.cover_image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+                          <div className="absolute bottom-2 left-2 right-2">
+                            <p className="text-white text-xs font-semibold leading-tight">{b.title}</p>
+                            {b.theme && <p className="text-white/70 text-[10px]">{b.theme}</p>}
+                          </div>
+                          {active && (
+                            <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
+                              <Check className="w-3.5 h-3.5 text-primary-foreground" />
+                            </div>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Details */}
+            {step === 3 && (
               <div className="space-y-5">
                 {/* Event Image */}
                 <div>
@@ -369,8 +404,8 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 3: Venue Selection */}
-            {step === 3 && (
+            {/* Step 4: Venue Selection */}
+            {step === 4 && (
               <div className="space-y-3">
                 {venues.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
@@ -403,8 +438,8 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 4: Vendor Selection */}
-            {step === 4 && (
+            {/* Step 5: Vendor Selection */}
+            {step === 5 && (
               <div className="space-y-3">
                 {vendors.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
@@ -438,8 +473,8 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 5: Decor */}
-            {step === 5 && (
+            {/* Step 6: Decor */}
+            {step === 6 && (
               <div className="space-y-3">
                 {decorOptions.map(decor => {
                   const isSelected = selectedDecor.some(d => d.id === decor.id);
@@ -457,8 +492,63 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 6: Review */}
-            {step === 6 && (
+            {/* Step 7: Visibility & Planner */}
+            {step === 7 && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-3">Who can see this event?</h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setVisibility("private")}
+                      className={`p-4 rounded-xl border text-left transition-all ${visibility === "private" ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                    >
+                      <Lock className="w-5 h-5 text-foreground mb-2" />
+                      <p className="text-sm font-semibold text-foreground">Private</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Only you and invited guests</p>
+                    </button>
+                    <button
+                      onClick={() => setVisibility("public")}
+                      className={`p-4 rounded-xl border text-left transition-all ${visibility === "public" ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                    >
+                      <Globe className="w-5 h-5 text-foreground mb-2" />
+                      <p className="text-sm font-semibold text-foreground">Public</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Featured in the Explore feed</p>
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground mb-1">Add a planner (optional)</h3>
+                  <p className="text-xs text-muted-foreground mb-3">Hand off coordination to a professional from the marketplace.</p>
+                  {planners.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">No planners available yet.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {planners.map((p: any) => {
+                        const active = selectedPlanner?.id === p.id;
+                        return (
+                          <button
+                            key={p.id}
+                            onClick={() => setSelectedPlanner(active ? null : p)}
+                            className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${active ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                          >
+                            {p.image_url && <img src={p.image_url} alt={p.name} className="w-12 h-12 rounded-lg object-cover" />}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-semibold text-foreground truncate">{p.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{p.price_range}</p>
+                            </div>
+                            {active && <Check className="w-5 h-5 text-primary" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Step 8: Review */}
+            {step === 8 && (
               <div className="space-y-4">
                 <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                   <div className="flex justify-between"><span className="text-sm text-muted-foreground">Event</span><span className="text-sm font-medium text-foreground text-right max-w-[60%]">{name || "—"}</span></div>
@@ -519,12 +609,14 @@ const CreateEvent = () => {
       <div className="px-5 pb-8 pt-3">
         <Button className="w-full py-6 text-base font-semibold" disabled={saving}
           onClick={() => {
-            if (step < 6) handleNext();
+            if (step < 8) handleNext();
             else handleFinish();
           }}>
-          {step === 6 ? (saving ? "Creating..." : "Continue to Payment") : step === 3 || step === 4 || step === 5 ? (
-            `Continue${step === 3 && !selectedVenue ? " (skip venue)" : ""}`
-          ) : "Continue"}
+            {step === 8
+              ? (saving ? "Creating..." : "Continue to Payment")
+              : step === 4 && !selectedVenue
+                ? "Continue (skip venue)"
+                : "Continue"}
         </Button>
       </div>
     </div>
