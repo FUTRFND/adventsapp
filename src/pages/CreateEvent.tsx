@@ -312,11 +312,11 @@ const CreateEvent = () => {
                           onClick={() => setSelectedInspiration(prev => prev.includes(b.id) ? prev.filter(x => x !== b.id) : [...prev, b.id])}
                           className={`relative rounded-xl overflow-hidden aspect-[3/4] text-left transition-all ${active ? "ring-2 ring-primary" : ""}`}
                         >
-                          {b.cover_image_url && <img src={b.cover_image_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />}
+                          {b.cover_url && <img src={b.cover_url} alt={b.title} className="absolute inset-0 w-full h-full object-cover" />}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                           <div className="absolute bottom-2 left-2 right-2">
                             <p className="text-white text-xs font-semibold leading-tight">{b.title}</p>
-                            {b.theme && <p className="text-white/70 text-[10px]">{b.theme}</p>}
+                            {b.style_category && <p className="text-white/70 text-[10px]">{b.style_category}</p>}
                           </div>
                           {active && (
                             <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center">
