@@ -29,6 +29,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
 import MapView from "./pages/MapView";
+import Explore from "./pages/Explore";
+import DecorInspiration from "./pages/DecorInspiration";
 import PageTransition from "./components/layout/PageTransition";
 import MobileOnlyGate from "./components/layout/MobileOnlyGate";
 
@@ -87,7 +89,7 @@ const AppRoutes = () => {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading...</div>;
 
   return (
-    <div className="max-w-lg mx-auto min-h-screen bg-background relative">
+    <div className="max-w-lg mx-auto min-h-screen relative">
       <Routes>
         <Route path="/onboarding" element={hasOnboarded ? <Navigate to="/auth" replace /> : <Onboarding />} />
         <Route path="/auth" element={user ? <Navigate to="/" replace /> : (hasOnboarded ? <Auth /> : <Navigate to="/onboarding" replace />)} />
@@ -106,6 +108,8 @@ const AppRoutes = () => {
         <Route path="/profile/help" element={<ProtectedRoute><PageTransition><HelpSupport /></PageTransition></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><PageTransition><MapView /></PageTransition></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute><PageTransition><VendorMarketplace /></PageTransition></ProtectedRoute>} />
+        <Route path="/explore" element={<ProtectedRoute><PageTransition><Explore /></PageTransition></ProtectedRoute>} />
+        <Route path="/decor" element={<ProtectedRoute><PageTransition><DecorInspiration /></PageTransition></ProtectedRoute>} />
         <Route path="/list-services" element={<ProtectedRoute><PageTransition><ListServices /></PageTransition></ProtectedRoute>} />
         <Route path="/events" element={<ProtectedRoute><PageTransition><EventsList /></PageTransition></ProtectedRoute>} />
         <Route path="/events/:eventId" element={<ProtectedRoute><PageTransition><EventDetail /></PageTransition></ProtectedRoute>} />

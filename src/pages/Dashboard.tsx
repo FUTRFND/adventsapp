@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import Logo from "@/components/Logo";
+import { topCategories } from "@/data/serviceCategories";
 
 const tabs = ["Featured", "Upcoming", "Trending", "Popular"];
 
@@ -59,8 +61,8 @@ const Dashboard = () => {
       <div className="px-5 pt-14 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-5">
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Hi, {displayName}</h1>
-            <p className="text-sm text-muted-foreground">Plan your next event</p>
+            <Logo size="md" />
+            <p className="text-sm text-muted-foreground mt-1">Hi, {displayName}</p>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => navigate("/profile/notifications")} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-secondary min-w-[44px] min-h-[44px]">
@@ -85,13 +87,32 @@ const Dashboard = () => {
         </motion.div>
 
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="flex gap-3 mb-5">
-          <button onClick={() => navigate("/create")} className="flex-1 bg-primary text-primary-foreground rounded-2xl py-4 text-base font-bold min-h-[44px]">
+          className="flex gap-3 mb-6">
+          <button onClick={() => navigate("/create")} className="flex-1 bg-brand-gradient text-white rounded-2xl py-4 text-base font-bold min-h-[44px] shadow-brand">
             Plan an Event
           </button>
-          <button onClick={() => navigate("/vendors")} className="flex-1 bg-secondary text-foreground rounded-2xl py-4 text-base font-bold min-h-[44px]">
+          <button onClick={() => navigate("/vendors")} className="flex-1 bg-card border border-border text-foreground rounded-2xl py-4 text-base font-bold min-h-[44px]">
             Browse Vendors
           </button>
+        </motion.div>
+
+        {/* Top 10 service categories */}
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-base font-display font-bold text-foreground">Browse Categories</h2>
+            <button onClick={() => navigate("/vendors")} className="text-xs font-medium text-primary">See all</button>
+          </div>
+          <div className="grid grid-cols-5 gap-2">
+            {topCategories.map((cat) => (
+              <button key={cat.value} onClick={() => navigate(`/vendors?category=${cat.value}`)}
+                className="flex flex-col items-center gap-1.5 p-2 rounded-xl hover:bg-secondary/60 min-h-[64px]">
+                <span className="w-10 h-10 rounded-xl bg-brand-gradient/10 flex items-center justify-center">
+                  <cat.icon className="w-5 h-5 text-primary" />
+                </span>
+                <span className="text-[10px] font-medium text-foreground text-center leading-tight line-clamp-2">{cat.label}</span>
+              </button>
+            ))}
+          </div>
         </motion.div>
       </div>
 

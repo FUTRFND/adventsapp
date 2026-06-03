@@ -58,6 +58,42 @@ export type Database = {
           },
         ]
       }
+      decor_inspiration: {
+        Row: {
+          cover_url: string | null
+          created_at: string
+          description: string | null
+          id: string
+          media: Json
+          sort_order: number | null
+          style_category: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          media?: Json
+          sort_order?: number | null
+          style_category: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_url?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          media?: Json
+          sort_order?: number | null
+          style_category?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       event_tasks: {
         Row: {
           category: string | null
@@ -120,6 +156,7 @@ export type Database = {
           image_url: string | null
           location: string | null
           name: string
+          planner_id: string | null
           priorities: string[] | null
           progress: number | null
           theme: string | null
@@ -127,6 +164,7 @@ export type Database = {
           updated_at: string
           user_id: string
           vibe_tags: string[] | null
+          visibility: string
         }
         Insert: {
           budget?: number | null
@@ -139,6 +177,7 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           name: string
+          planner_id?: string | null
           priorities?: string[] | null
           progress?: number | null
           theme?: string | null
@@ -146,6 +185,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           vibe_tags?: string[] | null
+          visibility?: string
         }
         Update: {
           budget?: number | null
@@ -158,6 +198,7 @@ export type Database = {
           image_url?: string | null
           location?: string | null
           name?: string
+          planner_id?: string | null
           priorities?: string[] | null
           progress?: number | null
           theme?: string | null
@@ -165,6 +206,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           vibe_tags?: string[] | null
+          visibility?: string
         }
         Relationships: []
       }
@@ -288,6 +330,7 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          gallery_media: Json
           id: string
           image_url: string | null
           is_active: boolean
@@ -296,11 +339,13 @@ export type Database = {
           price_range: string | null
           updated_at: string
           user_id: string
+          video_url: string | null
         }
         Insert: {
           category?: string
           created_at?: string
           description?: string | null
+          gallery_media?: Json
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -309,11 +354,13 @@ export type Database = {
           price_range?: string | null
           updated_at?: string
           user_id: string
+          video_url?: string | null
         }
         Update: {
           category?: string
           created_at?: string
           description?: string | null
+          gallery_media?: Json
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -322,6 +369,7 @@ export type Database = {
           price_range?: string | null
           updated_at?: string
           user_id?: string
+          video_url?: string | null
         }
         Relationships: []
       }
@@ -332,6 +380,7 @@ export type Database = {
           category: string
           created_at: string
           description: string | null
+          gallery_media: Json
           id: string
           image_url: string | null
           location: string | null
@@ -339,6 +388,7 @@ export type Database = {
           price_range: string | null
           rating: number | null
           review_count: number | null
+          video_url: string | null
         }
         Insert: {
           amenities?: string[] | null
@@ -346,6 +396,7 @@ export type Database = {
           category: string
           created_at?: string
           description?: string | null
+          gallery_media?: Json
           id?: string
           image_url?: string | null
           location?: string | null
@@ -353,6 +404,7 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           review_count?: number | null
+          video_url?: string | null
         }
         Update: {
           amenities?: string[] | null
@@ -360,6 +412,7 @@ export type Database = {
           category?: string
           created_at?: string
           description?: string | null
+          gallery_media?: Json
           id?: string
           image_url?: string | null
           location?: string | null
@@ -367,6 +420,7 @@ export type Database = {
           price_range?: string | null
           rating?: number | null
           review_count?: number | null
+          video_url?: string | null
         }
         Relationships: []
       }
