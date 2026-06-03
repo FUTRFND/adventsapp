@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Compass, CalendarDays, MapPin, User, Plus, Store } from "lucide-react";
+import { Home, Compass, CalendarDays, MapPin, User, Plus, Store } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
