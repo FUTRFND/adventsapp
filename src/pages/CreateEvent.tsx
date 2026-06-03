@@ -553,8 +553,28 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 8: Review */}
+            {/* Step 8: Event Visualization mood board */}
             {step === 8 && (
+              <div className="-mx-5">
+                <EventVisualization
+                  data={{
+                    eventName: name,
+                    type: eventTypes.find(t => t.value === type)?.label,
+                    theme: eventThemes.find(t => t.value === theme)?.label,
+                    location,
+                    guestCount: parseInt(guestCount) || 0,
+                    selectedVenue,
+                    selectedVendors,
+                    selectedDecorBoards,
+                  }}
+                  onConfirm={() => setStep(9)}
+                  onBack={() => setStep(7)}
+                />
+              </div>
+            )}
+
+            {/* Step 9: Review */}
+            {step === 9 && (
               <div className="space-y-4">
                 <div className="bg-card border border-border rounded-2xl p-5 space-y-3">
                   <div className="flex justify-between"><span className="text-sm text-muted-foreground">Event</span><span className="text-sm font-medium text-foreground text-right max-w-[60%]">{name || "—"}</span></div>
@@ -611,20 +631,22 @@ const CreateEvent = () => {
         </AnimatePresence>
       </div>
 
-      {/* Footer */}
-      <div className="px-5 pb-8 pt-3">
-        <Button className="w-full py-6 text-base font-semibold" disabled={saving}
-          onClick={() => {
-            if (step < 8) handleNext();
-            else handleFinish();
-          }}>
-            {step === 8
-              ? (saving ? "Creating..." : "Continue to Payment")
-              : step === 4 && !selectedVenue
-                ? "Continue (skip venue)"
-                : "Continue"}
-        </Button>
-      </div>
+      {/* Footer — hidden on the visualization step which has its own CTA */}
+      {step !== 8 && (
+        <div className="px-5 pb-8 pt-3">
+          <Button className="w-full py-6 text-base font-semibold" disabled={saving}
+            onClick={() => {
+              if (step < 9) handleNext();
+              else handleFinish();
+            }}>
+              {step === 9
+                ? (saving ? "Creating..." : "Continue to Payment")
+                : step === 4 && !selectedVenue
+                  ? "Continue (skip venue)"
+                  : "Continue"}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
