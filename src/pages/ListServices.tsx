@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2, Store, ToggleLeft, ToggleRight } from "lucide-react";
+import { ArrowLeft, Plus, Pencil, Trash2, Store, ToggleLeft, ToggleRight, Play } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,10 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import MediaUploader, { type MediaItem } from "@/components/MediaUploader";
+import { topCategories, popularCategories } from "@/data/serviceCategories";
 
-const serviceCategories = ["Venues", "Catering", "Photography", "Florists", "Entertainment", "DJ", "Decor", "Planning", "General"];
+const serviceCategories = [...topCategories, ...popularCategories].map(c => c.label);
 
 const ListServices = () => {
   const navigate = useNavigate();
@@ -19,10 +21,12 @@ const ListServices = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingService, setEditingService] = useState<any>(null);
   const [name, setName] = useState("");
-  const [category, setCategory] = useState("General");
+  const [category, setCategory] = useState("Venue");
   const [description, setDescription] = useState("");
   const [priceRange, setPriceRange] = useState("");
   const [location, setLocation] = useState("");
+  const [gallery, setGallery] = useState<MediaItem[]>([]);
+  const [videoUrl, setVideoUrl] = useState("");
 
   const { data: services = [], isLoading } = useQuery({
     queryKey: ["user_services", user?.id],
@@ -39,10 +43,12 @@ const ListServices = () => {
 
   const resetForm = () => {
     setName("");
-    setCategory("General");
+    setCategory("Venue");
     setDescription("");
     setPriceRange("");
     setLocation("");
+    setGallery([]);
+    setVideoUrl("");
     setEditingService(null);
     setShowForm(false);
   };
@@ -53,22 +59,29 @@ const ListServices = () => {
     setDescription(service.description || "");
     setPriceRange(service.price_range || "");
     setLocation(service.location || "");
+    setGallery(Array.isArray(service.gallery_media) ? service.gallery_media : []);
+    setVideoUrl(service.video_url || "");
     setEditingService(service);
     setShowForm(true);
   };
 
   const saveMutation = useMutation({
     mutationFn: async () => {
+      const payload: any = {
+        name, category, description, price_range: priceRange, location,
+        gallery_media: gallery as any,
+        video_url: videoUrl || null,
+      };
       if (editingService) {
         const { error } = await supabase
           .from("user_services")
-          .update({ name, category, description, price_range: priceRange, location, updated_at: new Date().toISOString() })
+          .update({ ...payload, updated_at: new Date().toISOString() })
           .eq("id", editingService.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from("user_services")
-          .insert({ user_id: user!.id, name, category, description, price_range: priceRange, location });
+          .insert({ user_id: user!.id, ...payload });
         if (error) throw error;
       }
     },
@@ -128,6 +141,8 @@ const ListServices = () => {
               <Textarea placeholder="Describe your service..." value={description} onChange={(e) => setDescription(e.target.value)} className="bg-secondary border-0 min-h-[80px]" />
               <Input placeholder="Price range (e.g. $500 - $2,000)" value={priceRange} onChange={(e) => setPriceRange(e.target.value)} className="bg-secondary border-0" />
               <Input placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} className="bg-secondary border-0" />
+              <Input placeholder="Highlight video URL (YouTube/Vimeo/MP4, optional)" value={videoUrl} onChange={(e) => setVideoUrl(e.target.value)} className="bg-secondary border-0" />
+              <MediaUploader value={gallery} onChange={setGallery} label="Portfolio gallery" maxItems={12} />
               <div className="flex gap-2 pt-1">
                 <Button onClick={() => saveMutation.mutate()} disabled={!name || saveMutation.isPending} className="flex-1">
                   {saveMutation.isPending ? "Saving..." : editingService ? "Update" : "List Service"}
