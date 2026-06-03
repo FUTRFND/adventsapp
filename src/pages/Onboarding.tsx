@@ -8,7 +8,7 @@ import Logo from "@/components/Logo";
 const slides: { icon: LucideIcon | null; title: string; description: string }[] = [
   {
     icon: null,
-    title: "Welcome to ADvents",
+    title: "Welcome to Advents",
     description: "Your all-in-one event planning marketplace. Plan weddings, parties, corporate events, and more — effortlessly.",
   },
   {

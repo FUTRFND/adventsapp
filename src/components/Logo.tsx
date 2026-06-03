@@ -14,7 +14,7 @@ const sizeMap = {
 };
 
 /**
- * ADvents wordmark with the brand blue→purple gradient.
+ * Advents wordmark with the brand blue→purple gradient.
  * Renders consistently across auth, splash and navigation surfaces.
  */
 const Logo = ({ className, size = "md", showMark = true }: LogoProps) => (
@@ -30,7 +30,7 @@ const Logo = ({ className, size = "md", showMark = true }: LogoProps) => (
         sizeMap[size],
       )}
     >
-      ADvents
+      Advents
     </span>
   </div>
 );
