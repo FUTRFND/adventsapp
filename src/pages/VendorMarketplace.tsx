@@ -1,19 +1,26 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, Star, MapPin, Search, Play } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { topCategories, popularCategories, resolveCategoryQuery } from "@/data/serviceCategories";
 
-const categories = ["All", "Venues", "Catering", "Photography", "Florists", "Entertainment"];
+const filterChips = [
+  { value: "all", label: "All" },
+  ...topCategories.map(c => ({ value: c.value, label: c.label })),
+  ...popularCategories.map(c => ({ value: c.value, label: c.label })),
+];
 
 const VendorMarketplace = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [searchParams] = useSearchParams();
+  const initialCategory = searchParams.get("category") || "all";
+  const [activeCategory, setActiveCategory] = useState(initialCategory);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVendor, setSelectedVendor] = useState<any>(null);
 
@@ -21,7 +28,12 @@ const VendorMarketplace = () => {
     queryKey: ["vendors", activeCategory, searchQuery],
     queryFn: async () => {
       let query = supabase.from("vendors").select("*");
-      if (activeCategory !== "All") query = query.eq("category", activeCategory);
+      if (activeCategory !== "all") {
+        // Match category by label (canonical) or any vendor row whose category
+        // text ILIKE the resolved canonical token. Supports synonyms via the URL.
+        const canonical = resolveCategoryQuery(activeCategory) || activeCategory;
+        query = query.ilike("category", `%${canonical}%`);
+      }
       if (searchQuery) query = query.ilike("name", `%${searchQuery}%`);
       const { data } = await query.order("rating", { ascending: false });
       return data || [];
@@ -145,10 +157,10 @@ const VendorMarketplace = () => {
           <Input placeholder="Search vendors..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-11 bg-secondary border-0" />
         </div>
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-          {categories.map((cat) => (
-            <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCategory === cat ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
-              {cat}
+          {filterChips.map((cat) => (
+            <button key={cat.value} onClick={() => setActiveCategory(cat.value)}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCategory === cat.value ? "bg-primary text-primary-foreground" : "bg-secondary text-muted-foreground"}`}>
+              {cat.label}
             </button>
           ))}
         </div>
