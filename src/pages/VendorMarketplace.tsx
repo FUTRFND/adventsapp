@@ -193,7 +193,8 @@ const VendorMarketplace = () => {
               </div>
             </div>
           </motion.button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
