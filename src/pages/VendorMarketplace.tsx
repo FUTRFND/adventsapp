@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Heart, Star, MapPin, Search, Play } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
