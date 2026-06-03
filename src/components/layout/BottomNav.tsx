@@ -34,7 +34,7 @@ const BottomNav = () => {
   ) return null;
 
   const plannerTabs = [
-    { icon: Compass, label: "Explore", path: "/" },
+    { icon: Compass, label: "Explore", path: "/explore" },
     { icon: CalendarDays, label: "Events", path: "/events" },
     { icon: Plus, label: "", path: "/create", isCenter: true },
     { icon: MapPin, label: "Map", path: "/map" },
@@ -42,7 +42,7 @@ const BottomNav = () => {
   ];
 
   const businessTabs = [
-    { icon: Compass, label: "Explore", path: "/" },
+    { icon: Compass, label: "Explore", path: "/explore" },
     { icon: Store, label: "Services", path: "/list-services" },
     { icon: Plus, label: "", path: "/list-services", isCenter: true },
     { icon: MapPin, label: "Map", path: "/map" },
