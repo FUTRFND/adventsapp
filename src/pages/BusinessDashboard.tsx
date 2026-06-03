@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import Logo from "@/components/Logo";
 
 const BusinessDashboard = () => {
   const navigate = useNavigate();
@@ -35,9 +36,12 @@ const BusinessDashboard = () => {
     <div className="pb-24 min-h-screen">
       <div className="px-5 pt-14 pb-4">
         <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">{displayName}</h1>
-            <p className="text-sm text-muted-foreground">Business Dashboard</p>
+          <div className="flex items-center gap-3">
+            <Logo size="sm" showWordmark={false} />
+            <div>
+              <h1 className="text-2xl font-display font-bold text-foreground">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">Business Dashboard</p>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <button onClick={() => navigate("/profile/notifications")} className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-secondary">
