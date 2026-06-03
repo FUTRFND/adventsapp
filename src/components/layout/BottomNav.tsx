@@ -34,10 +34,10 @@ const BottomNav = () => {
   ) return null;
 
   const plannerTabs = [
+    { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: CalendarDays, label: "Events", path: "/events" },
     { icon: Plus, label: "", path: "/create", isCenter: true },
-    { icon: MapPin, label: "Map", path: "/map" },
+    { icon: CalendarDays, label: "Events", path: "/events" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
