@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { Compass, CalendarDays, MapPin, User, Plus, Store } from "lucide-react";
+import { Home, Compass, CalendarDays, MapPin, User, Plus, Store } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -34,18 +34,18 @@ const BottomNav = () => {
   ) return null;
 
   const plannerTabs = [
+    { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: CalendarDays, label: "Events", path: "/events" },
     { icon: Plus, label: "", path: "/create", isCenter: true },
-    { icon: MapPin, label: "Map", path: "/map" },
+    { icon: CalendarDays, label: "Events", path: "/events" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
   const businessTabs = [
+    { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: Store, label: "Services", path: "/list-services" },
     { icon: Plus, label: "", path: "/list-services", isCenter: true },
-    { icon: MapPin, label: "Map", path: "/map" },
+    { icon: Store, label: "Services", path: "/list-services" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
