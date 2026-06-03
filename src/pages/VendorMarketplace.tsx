@@ -7,6 +7,21 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { topCategories, popularCategories, resolveCategoryQuery } from "@/data/serviceCategories";
+import MediaGallery, { type GalleryMedia } from "@/components/MediaGallery";
+
+const buildMedia = (vendor: any): GalleryMedia[] => {
+  const items: GalleryMedia[] = [];
+  if (vendor?.image_url) items.push({ type: "image", url: vendor.image_url });
+  if (Array.isArray(vendor?.gallery_media)) {
+    for (const m of vendor.gallery_media) {
+      if (m?.url && (m.type === "image" || m.type === "video")) items.push(m);
+    }
+  }
+  if (vendor?.video_url) items.push({ type: "video", url: vendor.video_url });
+  // de-dupe by url
+  const seen = new Set<string>();
+  return items.filter((m) => (seen.has(m.url) ? false : (seen.add(m.url), true)));
+};
 
 const filterChips = [
   { value: "all", label: "All" },
@@ -61,65 +76,37 @@ const VendorMarketplace = () => {
   });
 
   if (selectedVendor) {
+    const media = buildMedia(selectedVendor);
     return (
       <div className="pb-24 min-h-screen">
         <div className="px-5 pt-14 pb-4">
           <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => setSelectedVendor(null)} className="text-foreground"><ArrowLeft className="w-6 h-6" /></button>
+            <button onClick={() => setSelectedVendor(null)} className="text-foreground min-w-[44px] min-h-[44px] flex items-center"><ArrowLeft className="w-6 h-6" /></button>
             <h1 className="text-lg font-display font-bold text-foreground flex-1">Vendor Details</h1>
           </div>
         </div>
+
+        {/* Media-first hero */}
+        <div className="px-5 mb-5">
+          {media.length > 0 ? (
+            <MediaGallery media={media} />
+          ) : (
+            <div className="w-full aspect-[4/3] rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground text-sm">
+              No media yet
+            </div>
+          )}
+        </div>
+
         <div className="px-5">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-xl font-display font-bold text-foreground">{selectedVendor.name}</h2>
               <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {selectedVendor.location}</p>
             </div>
-            <button className="p-2" onClick={() => toggleSave.mutate(selectedVendor.id)}>
+            <button className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" onClick={() => toggleSave.mutate(selectedVendor.id)}>
               <Heart className={`w-6 h-6 ${savedVendorIds.includes(selectedVendor.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
             </button>
           </div>
-          <div className="rounded-xl overflow-hidden mb-4">
-            <img src={selectedVendor.image_url} alt={selectedVendor.name} className="w-full h-48 object-cover" />
-          </div>
-
-          {selectedVendor.video_url && (
-            <div className="rounded-xl overflow-hidden mb-4 bg-black">
-              {/\.(mp4|webm|mov)$/i.test(selectedVendor.video_url) ? (
-                <video src={selectedVendor.video_url} controls className="w-full h-56 object-cover" />
-              ) : (
-                <iframe
-                  src={selectedVendor.video_url.replace("watch?v=", "embed/")}
-                  title="Vendor highlight"
-                  className="w-full h-56"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              )}
-            </div>
-          )}
-
-          {Array.isArray(selectedVendor.gallery_media) && selectedVendor.gallery_media.length > 0 && (
-            <div className="mb-6">
-              <h3 className="font-display font-bold text-foreground mb-2">Portfolio</h3>
-              <div className="grid grid-cols-3 gap-2">
-                {selectedVendor.gallery_media.map((m: any, i: number) => (
-                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-secondary">
-                    {m.type === "video" ? (
-                      <>
-                        <video src={m.url} className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
-                          <Play className="w-6 h-6 text-white fill-white" />
-                        </div>
-                      </>
-                    ) : (
-                      <img src={m.url} alt="" className="w-full h-full object-cover" />
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
 
           <p className="text-sm text-foreground mb-6">{selectedVendor.description}</p>
           <div className="mb-6">
@@ -167,12 +154,27 @@ const VendorMarketplace = () => {
       </div>
 
       <div className="px-5 space-y-4">
-        {vendors.map((vendor, index) => (
+        {vendors.map((vendor, index) => {
+          const cardMedia = buildMedia(vendor);
+          const mediaCount = cardMedia.length;
+          const hasVideo = cardMedia.some((m) => m.type === "video");
+          return (
           <motion.button key={vendor.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }} onClick={() => setSelectedVendor(vendor)}
             className="w-full bg-card border border-border rounded-xl overflow-hidden text-left hover:shadow-card transition-shadow">
             <div className="relative">
               <img src={vendor.image_url} alt={vendor.name} className="w-full h-40 object-cover" />
+              {hasVideo && (
+                <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full">
+                  <Play className="w-3 h-3 text-white fill-white" />
+                  <span className="text-[10px] text-white font-medium">Video</span>
+                </div>
+              )}
+              {mediaCount > 1 && (
+                <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full">
+                  <span className="text-[10px] text-white font-medium">{mediaCount} photos</span>
+                </div>
+              )}
               <button className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full"
                 onClick={(e) => { e.stopPropagation(); toggleSave.mutate(vendor.id); }}>
                 <Heart className={`w-5 h-5 ${savedVendorIds.includes(vendor.id) ? "fill-destructive text-destructive" : "text-foreground"}`} />
@@ -191,7 +193,8 @@ const VendorMarketplace = () => {
               </div>
             </div>
           </motion.button>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
