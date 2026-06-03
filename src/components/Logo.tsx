@@ -28,7 +28,7 @@ const Logo = ({ className, size = "md", showMark = true, showWordmark = true }: 
         <img
           src={logoAsset.url}
           alt="Advents"
-          className={cn("rounded-xl object-contain", s.mark)}
+          className={cn("object-contain", s.mark)}
         />
       )}
       {showWordmark && (
