@@ -13,6 +13,7 @@ import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { eventTypes, eventTypeCategories } from "@/data/eventTypes";
 import { eventThemes } from "@/data/eventThemes";
+import { Globe, Lock } from "lucide-react";
 
 const TOTAL_STEPS = 9;
 
@@ -50,6 +51,9 @@ const CreateEvent = () => {
   const [selectedVenue, setSelectedVenue] = useState<any>(null);
   const [selectedVendors, setSelectedVendors] = useState<any[]>([]);
   const [selectedDecor, setSelectedDecor] = useState<any[]>([]);
+  const [selectedInspiration, setSelectedInspiration] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<"private" | "public">("private");
+  const [selectedPlanner, setSelectedPlanner] = useState<any>(null);
 
   // Search
   const [searchFilter, setSearchFilter] = useState("");
@@ -68,6 +72,26 @@ const CreateEvent = () => {
     queryFn: async () => {
       const { data } = await supabase.from("vendors").select("*").neq("category", "Venues").order("rating", { ascending: false });
       return (data || []).map(v => ({ ...v, price: parseInt(v.price_range?.replace(/[^0-9]/g, '') || '2000') }));
+    },
+  });
+
+  const { data: planners = [] } = useQuery({
+    queryKey: ["vendors-planners"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("vendors")
+        .select("*")
+        .or("category.eq.Planning,category.eq.Planner,category.ilike.%planner%")
+        .order("rating", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const { data: inspirationBoards = [] } = useQuery({
+    queryKey: ["decor_inspiration"],
+    queryFn: async () => {
+      const { data } = await supabase.from("decor_inspiration").select("*").limit(24);
+      return data || [];
     },
   });
 
