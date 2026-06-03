@@ -51,9 +51,8 @@ const Auth = () => {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-sm"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-display font-bold text-foreground mb-2">Advents</h1>
-          <p className="text-muted-foreground">Event Planning Marketplace</p>
+        <div className="text-center mb-8 flex flex-col items-center">
+          <Logo size="xl" showMark />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
