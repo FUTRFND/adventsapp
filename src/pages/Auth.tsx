@@ -52,7 +52,7 @@ const Auth = () => {
         className="w-full max-w-sm"
       >
         <div className="text-center mb-8 flex flex-col items-center">
-          <Logo size="xl" showMark />
+          <Logo size="xl" showMark showWordmark={false} />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
