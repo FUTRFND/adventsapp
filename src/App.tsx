@@ -108,6 +108,8 @@ const AppRoutes = () => {
         <Route path="/profile/help" element={<ProtectedRoute><PageTransition><HelpSupport /></PageTransition></ProtectedRoute>} />
         <Route path="/map" element={<ProtectedRoute><PageTransition><MapView /></PageTransition></ProtectedRoute>} />
         <Route path="/vendors" element={<ProtectedRoute><PageTransition><VendorMarketplace /></PageTransition></ProtectedRoute>} />
+        <Route path="/explore" element={<ProtectedRoute><PageTransition><Explore /></PageTransition></ProtectedRoute>} />
+        <Route path="/decor" element={<ProtectedRoute><PageTransition><DecorInspiration /></PageTransition></ProtectedRoute>} />
         <Route path="/list-services" element={<ProtectedRoute><PageTransition><ListServices /></PageTransition></ProtectedRoute>} />
         <Route path="/events" element={<ProtectedRoute><PageTransition><EventsList /></PageTransition></ProtectedRoute>} />
         <Route path="/events/:eventId" element={<ProtectedRoute><PageTransition><EventDetail /></PageTransition></ProtectedRoute>} />
