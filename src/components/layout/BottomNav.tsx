@@ -42,10 +42,10 @@ const BottomNav = () => {
   ];
 
   const businessTabs = [
+    { icon: Home, label: "Home", path: "/" },
     { icon: Compass, label: "Explore", path: "/explore" },
-    { icon: Store, label: "Services", path: "/list-services" },
     { icon: Plus, label: "", path: "/list-services", isCenter: true },
-    { icon: MapPin, label: "Map", path: "/map" },
+    { icon: Store, label: "Services", path: "/list-services" },
     { icon: User, label: "Profile", path: "/profile" },
   ];
 
