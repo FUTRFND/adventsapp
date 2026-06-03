@@ -14,8 +14,9 @@ import { toast } from "sonner";
 import { eventTypes, eventTypeCategories } from "@/data/eventTypes";
 import { eventThemes } from "@/data/eventThemes";
 import { Globe, Lock } from "lucide-react";
+import EventVisualization from "./EventVisualization";
 
-const TOTAL_STEPS = 9;
+const TOTAL_STEPS = 10;
 
 const decorOptions = [
   { id: "centerpieces", name: "Centerpieces", price: 800 },
@@ -218,8 +219,13 @@ const CreateEvent = () => {
     "Choose vendors",
     "Decor & style",
     "Visibility & planner",
+    "", // step 8 = visualization (no header)
     "Review your event",
   ];
+
+  const selectedDecorBoards = inspirationBoards
+    .filter((b: any) => selectedInspiration.includes(b.id))
+    .map((b: any) => ({ id: b.id, title: b.title, cover_url: b.cover_url, style_category: b.style_category }));
 
   return (
     <div className="min-h-screen flex flex-col">
