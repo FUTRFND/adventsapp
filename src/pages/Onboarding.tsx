@@ -54,7 +54,7 @@ const Onboarding = () => {
               </div>
             ) : (
               <div className="mb-8 flex justify-center">
-                <Logo size="xl" showMark />
+                <Logo size="xl" showMark showWordmark={false} />
               </div>
             )}
             <h1 className="text-3xl font-display font-bold text-foreground mb-4">
