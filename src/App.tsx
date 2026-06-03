@@ -29,6 +29,8 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import HelpSupport from "./pages/HelpSupport";
 import NotFound from "./pages/NotFound";
 import MapView from "./pages/MapView";
+import Explore from "./pages/Explore";
+import DecorInspiration from "./pages/DecorInspiration";
 import PageTransition from "./components/layout/PageTransition";
 import MobileOnlyGate from "./components/layout/MobileOnlyGate";
 
