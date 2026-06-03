@@ -154,12 +154,27 @@ const VendorMarketplace = () => {
       </div>
 
       <div className="px-5 space-y-4">
-        {vendors.map((vendor, index) => (
+        {vendors.map((vendor, index) => {
+          const cardMedia = buildMedia(vendor);
+          const mediaCount = cardMedia.length;
+          const hasVideo = cardMedia.some((m) => m.type === "video");
+          return (
           <motion.button key={vendor.id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }} onClick={() => setSelectedVendor(vendor)}
             className="w-full bg-card border border-border rounded-xl overflow-hidden text-left hover:shadow-card transition-shadow">
             <div className="relative">
               <img src={vendor.image_url} alt={vendor.name} className="w-full h-40 object-cover" />
+              {hasVideo && (
+                <div className="absolute bottom-3 left-3 flex items-center gap-1 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full">
+                  <Play className="w-3 h-3 text-white fill-white" />
+                  <span className="text-[10px] text-white font-medium">Video</span>
+                </div>
+              )}
+              {mediaCount > 1 && (
+                <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-sm rounded-full">
+                  <span className="text-[10px] text-white font-medium">{mediaCount} photos</span>
+                </div>
+              )}
               <button className="absolute top-3 right-3 p-2 bg-background/80 backdrop-blur-sm rounded-full"
                 onClick={(e) => { e.stopPropagation(); toggleSave.mutate(vendor.id); }}>
                 <Heart className={`w-5 h-5 ${savedVendorIds.includes(vendor.id) ? "fill-destructive text-destructive" : "text-foreground"}`} />
