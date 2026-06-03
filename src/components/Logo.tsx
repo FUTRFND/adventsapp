@@ -1,38 +1,48 @@
 import { cn } from "@/lib/utils";
+import logoAsset from "@/assets/advents-logo.png.asset.json";
 
 interface LogoProps {
   className?: string;
   size?: "sm" | "md" | "lg" | "xl";
   showMark?: boolean;
+  showWordmark?: boolean;
 }
 
 const sizeMap = {
-  sm: "text-xl",
-  md: "text-3xl",
-  lg: "text-4xl",
-  xl: "text-5xl",
+  sm: { text: "text-xl", mark: "w-8 h-8" },
+  md: { text: "text-3xl", mark: "w-10 h-10" },
+  lg: { text: "text-4xl", mark: "w-12 h-12" },
+  xl: { text: "text-5xl", mark: "w-16 h-16" },
 };
 
 /**
- * ADvents wordmark with the brand blue→purple gradient.
- * Renders consistently across auth, splash and navigation surfaces.
+ * Advents wordmark + mark.
+ * Uses the official Advents logo image for the mark and the brand
+ * blue→purple gradient on the wordmark.
  */
-const Logo = ({ className, size = "md", showMark = true }: LogoProps) => (
-  <div className={cn("inline-flex items-center gap-2", className)}>
-    {showMark && (
-      <span className="inline-flex w-9 h-9 rounded-xl items-center justify-center bg-brand-gradient shadow-brand">
-        <span className="text-white font-display font-extrabold text-lg leading-none">A</span>
-      </span>
-    )}
-    <span
-      className={cn(
-        "font-display font-extrabold tracking-tight bg-brand-gradient bg-clip-text text-transparent leading-none",
-        sizeMap[size],
+const Logo = ({ className, size = "md", showMark = true, showWordmark = true }: LogoProps) => {
+  const s = sizeMap[size];
+  return (
+    <div className={cn("inline-flex items-center gap-2", className)}>
+      {showMark && (
+        <img
+          src={logoAsset.url}
+          alt="Advents"
+          className={cn("rounded-xl object-contain", s.mark)}
+        />
       )}
-    >
-      ADvents
-    </span>
-  </div>
-);
+      {showWordmark && (
+        <span
+          className={cn(
+            "font-display font-extrabold tracking-tight bg-brand-gradient bg-clip-text text-transparent leading-none",
+            s.text,
+          )}
+        >
+          Advents
+        </span>
+      )}
+    </div>
+  );
+};
 
 export default Logo;

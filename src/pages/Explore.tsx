@@ -26,7 +26,7 @@ const Explore = () => {
           <Globe className="w-5 h-5 text-primary" />
           <h1 className="text-2xl font-display font-bold text-foreground">Explore</h1>
         </div>
-        <p className="text-sm text-muted-foreground">Public events from the ADvents community.</p>
+        <p className="text-sm text-muted-foreground">Public events from the Advents community.</p>
       </div>
 
       {isLoading ? (

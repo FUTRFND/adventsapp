@@ -1,4 +1,4 @@
-// Expanded service categories for the ADvents marketplace
+// Expanded service categories for the Advents marketplace
 // Top 10 = shown prominently on the home page
 // Popular = popular filter chips
 // Full = complete list used by search/filter
