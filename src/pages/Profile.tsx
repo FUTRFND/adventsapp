@@ -104,7 +104,7 @@ const Profile = () => {
         <h2 className="text-xl font-display font-bold text-foreground">{displayName}</h2>
         <p className="text-sm text-muted-foreground">{user?.email}</p>
         <span className="inline-block mt-2 px-3 py-1 bg-secondary rounded-full text-xs font-medium text-muted-foreground capitalize">
-          {accountType === "business" ? "Business Account" : "Event Planner"}
+          {accountType === "business" ? "Business" : "Planner"}
         </span>
         {profile?.avatar_url && (
           <button onClick={removeAvatar} className="block mx-auto mt-2 text-xs text-destructive inline-flex items-center gap-1">
@@ -136,7 +136,7 @@ const Profile = () => {
         <button onClick={() => navigate("/role-selection")}
           className="w-full flex items-center gap-3 px-4 py-3.5 mt-4 text-left text-foreground min-h-[44px] bg-secondary rounded-xl">
           {accountType === "business" ? <Calendar className="w-5 h-5" /> : <Store className="w-5 h-5" />}
-          <span className="text-sm font-medium">Switch to {accountType === "business" ? "Event Planner" : "Business"} Account</span>
+          <span className="text-sm font-medium">Switch to {accountType === "business" ? "Planner" : "Business"} Account</span>
         </button>
 
         <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3.5 mt-4 text-left text-destructive min-h-[44px]">
