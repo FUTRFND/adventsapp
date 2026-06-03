@@ -1,24 +1,25 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Calendar, CheckCircle2, Sparkles, ArrowRight } from "lucide-react";
+import { CheckCircle2, Sparkles, ArrowRight, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 
-const slides = [
+const slides: { icon: LucideIcon | null; title: string; description: string }[] = [
   {
-    icon: Calendar,
-    title: "Welcome to Advents",
-    description: "Your all-in-one event planning companion. Plan weddings, parties, corporate events, and more — effortlessly.",
+    icon: null,
+    title: "Welcome to ADvents",
+    description: "Your all-in-one event planning marketplace. Plan weddings, parties, corporate events, and more — effortlessly.",
   },
   {
     icon: CheckCircle2,
     title: "Plan Smarter",
-    description: "AI-powered task lists, budget tracking, guest management, and vendor discovery — all in one place.",
+    description: "Guided wizards, budget tracking, decor inspiration, and a curated vendor marketplace — all in one place.",
   },
   {
     icon: Sparkles,
     title: "Let's Get Started",
-    description: "Create your first event and let our planning wizard build a personalized checklist for you.",
+    description: "Create your first event, browse public events for inspiration, or list your services as a vendor.",
   },
 ];
 
@@ -44,12 +45,18 @@ const Onboarding = () => {
             transition={{ duration: 0.3 }}
             className="text-center"
           >
-            <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mx-auto mb-8">
-              {(() => {
-                const Icon = slides[current].icon;
-                return <Icon className="w-10 h-10 text-foreground" />;
-              })()}
-            </div>
+            {slides[current].icon ? (
+              <div className="w-20 h-20 rounded-full bg-secondary flex items-center justify-center mx-auto mb-8">
+                {(() => {
+                  const Icon = slides[current].icon!;
+                  return <Icon className="w-10 h-10 text-foreground" />;
+                })()}
+              </div>
+            ) : (
+              <div className="mb-8 flex justify-center">
+                <Logo size="xl" showMark />
+              </div>
+            )}
             <h1 className="text-3xl font-display font-bold text-foreground mb-4">
               {slides[current].title}
             </h1>
