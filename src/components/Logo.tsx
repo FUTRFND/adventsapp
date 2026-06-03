@@ -28,7 +28,9 @@ const Logo = ({ className, size = "md", showMark = true, showWordmark = true }: 
         <img
           src={logoAsset.url}
           alt="Advents"
-          className={cn("object-contain", s.mark)}
+          // mix-blend-multiply drops the white tile around the mark on
+          // light gradient backgrounds, leaving only the colored glyph.
+          className={cn("object-contain mix-blend-multiply", s.mark)}
         />
       )}
       {showWordmark && (
