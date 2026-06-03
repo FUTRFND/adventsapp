@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, Star, MapPin, Search } from "lucide-react";
+import { ArrowLeft, Heart, Star, MapPin, Search, Play } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -67,9 +67,48 @@ const VendorMarketplace = () => {
               <Heart className={`w-6 h-6 ${savedVendorIds.includes(selectedVendor.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
             </button>
           </div>
-          <div className="rounded-xl overflow-hidden mb-6">
+          <div className="rounded-xl overflow-hidden mb-4">
             <img src={selectedVendor.image_url} alt={selectedVendor.name} className="w-full h-48 object-cover" />
           </div>
+
+          {selectedVendor.video_url && (
+            <div className="rounded-xl overflow-hidden mb-4 bg-black">
+              {/\.(mp4|webm|mov)$/i.test(selectedVendor.video_url) ? (
+                <video src={selectedVendor.video_url} controls className="w-full h-56 object-cover" />
+              ) : (
+                <iframe
+                  src={selectedVendor.video_url.replace("watch?v=", "embed/")}
+                  title="Vendor highlight"
+                  className="w-full h-56"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              )}
+            </div>
+          )}
+
+          {Array.isArray(selectedVendor.gallery_media) && selectedVendor.gallery_media.length > 0 && (
+            <div className="mb-6">
+              <h3 className="font-display font-bold text-foreground mb-2">Portfolio</h3>
+              <div className="grid grid-cols-3 gap-2">
+                {selectedVendor.gallery_media.map((m: any, i: number) => (
+                  <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-secondary">
+                    {m.type === "video" ? (
+                      <>
+                        <video src={m.url} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Play className="w-6 h-6 text-white fill-white" />
+                        </div>
+                      </>
+                    ) : (
+                      <img src={m.url} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <p className="text-sm text-foreground mb-6">{selectedVendor.description}</p>
           <div className="mb-6">
             <h3 className="font-display font-bold text-foreground mb-2">Details</h3>
