@@ -83,35 +83,33 @@ const VendorMarketplace = () => {
 
   if (selectedVendor) {
     const media = buildMedia(selectedVendor);
+    const counts = mediaCounts(media);
     return (
       <div className="pb-24 min-h-screen">
-        <div className="px-5 pt-14 pb-4">
-          <div className="flex items-center gap-4 mb-4">
-            <button onClick={() => setSelectedVendor(null)} className="text-foreground min-w-[44px] min-h-[44px] flex items-center"><ArrowLeft className="w-6 h-6" /></button>
-            <h1 className="text-lg font-display font-bold text-foreground flex-1">Vendor Details</h1>
+        <div className="relative">
+          <MediaGallery media={media} variant="hero" title={`${selectedVendor.name} media gallery`} />
+          <div className="absolute left-0 right-0 top-0 flex items-center justify-between px-5 pt-14">
+            <button onClick={() => setSelectedVendor(null)} className="text-foreground min-w-[44px] min-h-[44px] rounded-full bg-background/90 backdrop-blur-md shadow-soft flex items-center justify-center"><ArrowLeft className="w-5 h-5" /></button>
+            <div className="rounded-full bg-background/90 px-3 py-2 backdrop-blur-md shadow-soft">
+              <Logo size="sm" showWordmark={false} />
+            </div>
+            <button className="text-foreground min-w-[44px] min-h-[44px] rounded-full bg-background/90 backdrop-blur-md shadow-soft flex items-center justify-center" onClick={() => toggleSave.mutate(selectedVendor.id)}>
+              <Heart className={`w-5 h-5 ${savedVendorIds.includes(selectedVendor.id) ? "fill-destructive text-destructive" : "text-foreground"}`} />
+            </button>
           </div>
         </div>
 
-        {/* Media-first hero */}
-        <div className="px-5 mb-5">
-          {media.length > 0 ? (
-            <MediaGallery media={media} />
-          ) : (
-            <div className="w-full aspect-[4/3] rounded-2xl bg-secondary flex items-center justify-center text-muted-foreground text-sm">
-              No media yet
+        <div className="px-5 -mt-8 relative z-10">
+          <div className="glass-card rounded-2xl p-5 mb-5">
+            <div className="flex items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary"><ImageIcon className="w-3.5 h-3.5" /> {counts.photos} Photos</span>
+              <span className="inline-flex items-center gap-1 rounded-full bg-accent px-3 py-1 text-xs font-semibold text-accent-foreground"><Film className="w-3.5 h-3.5" /> {counts.videos} Videos</span>
             </div>
-          )}
-        </div>
-
-        <div className="px-5">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h2 className="text-xl font-display font-bold text-foreground">{selectedVendor.name}</h2>
               <p className="text-sm text-muted-foreground flex items-center gap-1"><MapPin className="w-3 h-3" /> {selectedVendor.location}</p>
             </div>
-            <button className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center" onClick={() => toggleSave.mutate(selectedVendor.id)}>
-              <Heart className={`w-6 h-6 ${savedVendorIds.includes(selectedVendor.id) ? "fill-destructive text-destructive" : "text-muted-foreground"}`} />
-            </button>
           </div>
 
           <p className="text-sm text-foreground mb-6">{selectedVendor.description}</p>
@@ -135,6 +133,7 @@ const VendorMarketplace = () => {
             <Star className="w-4 h-4 fill-foreground text-foreground" />
             <span className="font-semibold text-foreground">{selectedVendor.rating}</span>
             <span className="text-sm text-muted-foreground">({selectedVendor.review_count} reviews)</span>
+          </div>
           </div>
         </div>
       </div>
