@@ -3,6 +3,7 @@ import { Calendar, MapPin, Users, Compass, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import Logo from "@/components/Logo";
 
 const Explore = () => {
   const navigate = useNavigate();
