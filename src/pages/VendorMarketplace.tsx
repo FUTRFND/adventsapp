@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Heart, Star, MapPin, Search, Play } from "lucide-react";
+import { ArrowLeft, Film, Heart, Image as ImageIcon, Star, MapPin, Search, Play } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { topCategories, popularCategories, resolveCategoryQuery } from "@/data/serviceCategories";
 import MediaGallery, { type GalleryMedia } from "@/components/MediaGallery";
+import Logo from "@/components/Logo";
 
 const buildMedia = (vendor: any): GalleryMedia[] => {
   const items: GalleryMedia[] = [];
@@ -22,6 +23,11 @@ const buildMedia = (vendor: any): GalleryMedia[] => {
   const seen = new Set<string>();
   return items.filter((m) => (seen.has(m.url) ? false : (seen.add(m.url), true)));
 };
+
+const mediaCounts = (media: GalleryMedia[]) => ({
+  photos: media.filter((m) => m.type === "image").length,
+  videos: media.filter((m) => m.type === "video").length,
+});
 
 const filterChips = [
   { value: "all", label: "All" },
