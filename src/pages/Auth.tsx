@@ -61,7 +61,7 @@ const Auth = () => {
       : "Plan unforgettable events with Advents.";
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-brand-soft">
+    <div className="min-h-screen flex flex-col items-center justify-center px-6 bg-brand-soft-gradient">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
