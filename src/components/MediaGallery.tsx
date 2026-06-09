@@ -75,10 +75,10 @@ const MediaGallery = ({ media, className, variant = "default", title = "Media ga
 
         <div className="absolute left-4 top-4 flex flex-wrap gap-2 pointer-events-none">
           <span className="inline-flex items-center gap-1 rounded-full bg-background/85 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-md shadow-soft">
-            <ImageIcon className="h-3.5 w-3.5 text-primary" /> {photoCount} Photos
+            <ImageIcon className="h-3.5 w-3.5 text-primary" /> {photoCount} {photoCount === 1 ? "Photo" : "Photos"}
           </span>
           <span className="inline-flex items-center gap-1 rounded-full bg-background/85 px-3 py-1 text-xs font-semibold text-foreground backdrop-blur-md shadow-soft">
-            <Film className="h-3.5 w-3.5 text-primary" /> {videoCount} Videos
+            <Film className="h-3.5 w-3.5 text-primary" /> {videoCount} {videoCount === 1 ? "Video" : "Videos"}
           </span>
         </div>
 

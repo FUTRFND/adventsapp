@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
+import Logo from "@/components/Logo";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -81,8 +82,11 @@ const Profile = () => {
 
   return (
     <div className="pb-24 min-h-screen">
-      <div className="px-5 pt-14 pb-6 text-center">
-        <h1 className="text-xl font-display font-bold text-foreground mb-6">Profile</h1>
+      <div className="px-5 pt-14 pb-6 text-center brand-section-header">
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <Logo size="sm" showWordmark={false} />
+          <h1 className="text-xl font-display font-bold text-foreground">Profile</h1>
+        </div>
         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="inline-block mb-4 relative">
           <div className="w-24 h-24 rounded-full overflow-hidden ring-4 ring-white shadow-card mx-auto bg-brand-gradient flex items-center justify-center">
             {profile?.avatar_url ? (

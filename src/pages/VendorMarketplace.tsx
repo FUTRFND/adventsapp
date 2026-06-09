@@ -142,8 +142,11 @@ const VendorMarketplace = () => {
 
   return (
     <div className="pb-24 min-h-screen">
-      <div className="px-5 pt-14 pb-4">
-        <h1 className="text-2xl font-display font-bold text-foreground mb-4">Vendors</h1>
+      <div className="px-5 pt-14 pb-4 brand-section-header">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-display font-bold text-foreground">Vendors</h1>
+          <Logo size="sm" showWordmark={false} />
+        </div>
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input placeholder="Search vendors..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10 h-11 bg-secondary border-0" />

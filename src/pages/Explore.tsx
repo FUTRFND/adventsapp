@@ -3,6 +3,7 @@ import { Calendar, MapPin, Users, Compass, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import Logo from "@/components/Logo";
 
 const Explore = () => {
   const navigate = useNavigate();
@@ -21,10 +22,13 @@ const Explore = () => {
 
   return (
     <div className="pb-24 min-h-screen">
-      <div className="px-5 pt-14 pb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <Globe className="w-5 h-5 text-primary" />
-          <h1 className="text-2xl font-display font-bold text-foreground">Explore</h1>
+      <div className="px-5 pt-14 pb-4 brand-section-header">
+        <div className="flex items-center justify-between mb-1">
+          <div className="flex items-center gap-2">
+            <Globe className="w-5 h-5 text-primary" />
+            <h1 className="text-2xl font-display font-bold text-foreground">Explore</h1>
+          </div>
+          <Logo size="sm" showWordmark={false} />
         </div>
         <p className="text-sm text-muted-foreground">Public events from the Advents community.</p>
       </div>
