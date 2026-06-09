@@ -53,15 +53,17 @@
 
     /* Gradients */
     --gradient-brand: linear-gradient(135deg, hsl(var(--brand-blue)), hsl(var(--brand-purple)));
-    --gradient-app-bg: linear-gradient(135deg, hsl(var(--bg-grad-from)) 0%, hsl(var(--bg-grad-via)) 50%, hsl(var(--bg-grad-to)) 100%);
+    --gradient-app-bg: linear-gradient(135deg, hsl(206 100% 96%) 0%, hsl(242 100% 98%) 42%, hsl(276 100% 96%) 100%);
+    --gradient-brand-soft: linear-gradient(135deg, hsl(204 100% 93%) 0%, hsl(238 100% 97%) 48%, hsl(276 100% 92%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.86), hsl(239 100% 98% / 0.76));
     --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(230 60% 97%) 100%);
     --gradient-dark: linear-gradient(135deg, hsl(230 25% 12%) 0%, hsl(230 25% 18%) 100%);
 
     /* Shadows */
     --shadow-soft: 0 4px 20px -2px hsl(230 30% 20% / 0.06);
-    --shadow-card: 0 8px 30px -4px hsl(230 30% 20% / 0.08);
-    --shadow-elevated: 0 20px 50px -10px hsl(230 40% 25% / 0.15);
-    --shadow-brand: 0 10px 30px -8px hsl(var(--brand-purple) / 0.35);
+    --shadow-card: 0 12px 34px -8px hsl(var(--brand-blue) / 0.18), 0 8px 22px -12px hsl(var(--brand-purple) / 0.24);
+    --shadow-elevated: 0 24px 60px -14px hsl(var(--brand-purple) / 0.26);
+    --shadow-brand: 0 14px 34px -10px hsl(var(--brand-purple) / 0.45);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 230 15% 26%;
@@ -140,6 +142,23 @@
 
   .gradient-app-bg {
     background: var(--gradient-app-bg);
+  }
+
+  .bg-brand-soft-gradient {
+    background: var(--gradient-brand-soft);
+  }
+
+  .glass-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border) / 0.78);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(18px);
+  }
+
+  .brand-section-header {
+    background: var(--gradient-brand-soft);
+    border: 1px solid hsl(var(--border) / 0.75);
+    box-shadow: var(--shadow-soft);
   }
 
   .shadow-soft {
