@@ -15,6 +15,7 @@ import { eventTypes, eventTypeCategories } from "@/data/eventTypes";
 import { eventThemes } from "@/data/eventThemes";
 import { Globe, Lock } from "lucide-react";
 import EventVisualization from "./EventVisualization";
+import DecorInspirationGallery from "@/components/DecorInspirationGallery";
 
 const TOTAL_STEPS = 10;
 
