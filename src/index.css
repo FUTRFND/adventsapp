@@ -129,7 +129,7 @@
 
 @layer utilities {
   .bg-brand-gradient {
-    background: var(--gradient-brand);
+    background-image: var(--gradient-brand);
   }
 
   .gradient-hero {
