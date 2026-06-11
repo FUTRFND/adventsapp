@@ -15,19 +15,10 @@ import { eventTypes, eventTypeCategories } from "@/data/eventTypes";
 import { eventThemes } from "@/data/eventThemes";
 import { Globe, Lock } from "lucide-react";
 import EventVisualization from "./EventVisualization";
+import DecorInspirationGallery from "@/components/DecorInspirationGallery";
 
 const TOTAL_STEPS = 10;
 
-const decorOptions = [
-  { id: "centerpieces", name: "Centerpieces", price: 800 },
-  { id: "lighting", name: "Ambient Lighting", price: 1200 },
-  { id: "floral-arch", name: "Floral Arch", price: 2500 },
-  { id: "table-settings", name: "Premium Table Settings", price: 600 },
-  { id: "drapery", name: "Ceiling Drapery", price: 1500 },
-  { id: "photo-backdrop", name: "Photo Backdrop", price: 900 },
-  { id: "signage", name: "Custom Signage", price: 400 },
-  { id: "balloon-install", name: "Balloon Installation", price: 700 },
-];
 
 const CreateEvent = () => {
   const navigate = useNavigate();
@@ -479,23 +470,15 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 6: Decor */}
+            {/* Step 6: Decor & Style — Pinterest-style inspiration board */}
             {step === 6 && (
-              <div className="space-y-3">
-                {decorOptions.map(decor => {
-                  const isSelected = selectedDecor.some(d => d.id === decor.id);
-                  return (
-                    <button key={decor.id} onClick={() => toggleDecor(decor)}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
-                      <div className="text-left">
-                        <span className="font-medium text-sm">{decor.name}</span>
-                        <p className={`text-xs mt-0.5 ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>${decor.price.toLocaleString()}</p>
-                      </div>
-                      {isSelected && <Check className="w-5 h-5" />}
-                    </button>
-                  );
-                })}
-              </div>
+              <DecorInspirationGallery
+                boards={inspirationBoards}
+                theme={theme}
+                eventType={type}
+                selected={selectedDecor}
+                onToggle={(item: any) => toggleDecor(item)}
+              />
             )}
 
             {/* Step 7: Visibility & Planner */}
