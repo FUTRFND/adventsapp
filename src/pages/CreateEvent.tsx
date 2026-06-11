@@ -18,16 +18,6 @@ import EventVisualization from "./EventVisualization";
 
 const TOTAL_STEPS = 10;
 
-const decorOptions = [
-  { id: "centerpieces", name: "Centerpieces", price: 800 },
-  { id: "lighting", name: "Ambient Lighting", price: 1200 },
-  { id: "floral-arch", name: "Floral Arch", price: 2500 },
-  { id: "table-settings", name: "Premium Table Settings", price: 600 },
-  { id: "drapery", name: "Ceiling Drapery", price: 1500 },
-  { id: "photo-backdrop", name: "Photo Backdrop", price: 900 },
-  { id: "signage", name: "Custom Signage", price: 400 },
-  { id: "balloon-install", name: "Balloon Installation", price: 700 },
-];
 
 const CreateEvent = () => {
   const navigate = useNavigate();
