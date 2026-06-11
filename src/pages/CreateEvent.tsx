@@ -469,23 +469,15 @@ const CreateEvent = () => {
               </div>
             )}
 
-            {/* Step 6: Decor */}
+            {/* Step 6: Decor & Style — Pinterest-style inspiration board */}
             {step === 6 && (
-              <div className="space-y-3">
-                {decorOptions.map(decor => {
-                  const isSelected = selectedDecor.some(d => d.id === decor.id);
-                  return (
-                    <button key={decor.id} onClick={() => toggleDecor(decor)}
-                      className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${isSelected ? "bg-primary text-primary-foreground" : "bg-secondary text-foreground"}`}>
-                      <div className="text-left">
-                        <span className="font-medium text-sm">{decor.name}</span>
-                        <p className={`text-xs mt-0.5 ${isSelected ? "text-primary-foreground/70" : "text-muted-foreground"}`}>${decor.price.toLocaleString()}</p>
-                      </div>
-                      {isSelected && <Check className="w-5 h-5" />}
-                    </button>
-                  );
-                })}
-              </div>
+              <DecorInspirationGallery
+                boards={inspirationBoards}
+                theme={theme}
+                eventType={type}
+                selected={selectedDecor}
+                onToggle={(item: any) => toggleDecor(item)}
+              />
             )}
 
             {/* Step 7: Visibility & Planner */}
